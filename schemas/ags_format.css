@@ -1,0 +1,39 @@
+
+
+h1, h2, h3, h4, th {
+	font-family:Tahoma;
+	// background-color: #028090;
+	
+}
+h2 {
+   color: green;
+}
+td.h2 {
+   color: green;
+}
+
+table { 
+    font-family:Tahoma;
+    font-size: 12pt;   
+    border-spacing: 5px;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+/*  th {
+writing-mode: tb-rl;
+filter: flipV flipH;
+width 15px;
+height 75px;
+word-wrap;
+}  */
+
+th,td {
+    padding: 10px;
+    text-align: left;
+    word-wrap: normal;
+	border: 1px solid black;
+}
+
+tr:nth-child(even) {
+    background-color:  #f0f3bd;
+}

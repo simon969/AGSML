@@ -1,0 +1,39 @@
+/*
+https://coolors.co/browser
+
+$color1: #05668d; //rgba(5, 102, 141, 100)
+$color2: #028090; //rgba(2, 128, 144, 100)
+$color3: #00a896; //rgba(0, 168, 150, 100)
+$color4: #02c39a; //rgba(2, 195, 154, 100)
+$color5: #f0f3bd; //rgba(240, 243, 189, 100)
+*/
+
+h1, h2, h3, h4, th {
+	font-family:Ariel;
+	// background-color: #028090;
+	
+}
+table { 
+    font-family:Ariel;
+    font-size: 12pt;   
+    border-spacing: 5px;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+/*  th {
+writing-mode: tb-rl;
+filter: flipV flipH;
+width 15px;
+height 75px;
+word-wrap;
+}  */
+
+th,td {
+    padding: 10px;
+    text-align: left;
+    word-wrap: normal;
+}
+
+tr:nth-child(even) {
+    background-color:  #f0f3bd;
+}
