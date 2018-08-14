@@ -1,1 +1,1 @@
-# AGSML is a class library for reading structured AGS files and converting them to XML files
+# AGSML is a class library for reading structured AGS files (@https://www.ags.org.uk/) and converting them to XML files
