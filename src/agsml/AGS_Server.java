@@ -18,16 +18,24 @@ package agsml;
 import java.net.*;
 import java.io.*;
 import java.util.Vector;
+import java.util.Iterator;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JTextArea;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.Duration;
 
 
 public class AGS_Server extends Thread {
     private TextAreaHandler textAreaHandler;
     private Logger mlog; 
-  
+    private JTree tree;
     public static String HOSTNAME = "localhost"; 
     public static int LISTENING_PORT = 20402; 
     public static int BUFF_SIZE = 4062; 
@@ -106,6 +114,9 @@ public void setLoggerTextArea(JTextArea textArea, Level level) {
        textAreaHandler.textArea = textArea;
        textAreaHandler.setLevel(level);
    }
+public void setClientTree(JTree t) {
+    tree = t ;
+}
 Logger getLogger() {
        return mlog;
    }
@@ -153,23 +164,40 @@ private void bindServerSocket () {
           //  System.exit (- 1 );
         } 
 } 
- 
+private void pollActiveClients() {
+    if (tree != null) {
+        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
+        root.removeAllChildren();
+     //   DefaultMutableTreeNode top =  new DefaultMutableTreeNode(HOSTNAME + "AGS SERVER:" + LISTENING_PORT);
+        while (mServerClients.hasNext()) {
+        AGS_ServerClient ac = mServerClients.Next();
+        root.add(new DefaultMutableTreeNode(ac.Details() + ac.ConnectionDuration() + ac.ConnectionStatus()));
+        System.out.println(ac.Details() + ac.ConnectionDuration() + ac.ConnectionStatus());
+        }
+        
+        model.reload(root);
+    }
+    
+   
+    
+    
+} 
 private void handleClientConnections ()  {
         while ( !isInterrupted()) {
             try {
                 Socket socket = mServerSocket.accept (); 
                 if (socket != null) {
                     AGS_ServerClient client = new AGS_ServerClient (this, socket);
+                    
                      mServerClients.addClient (client); 
                      client.mAGS_DataStructure =  mDefaultWriter.m_ds;
                      client.mAGS_Dictionary =  mDefaultWriter.m_dic;
                      client.start();
                 }
                 
-//            }    
-//            catch (InterruptedException e) {
-//                e.printStackTrace (); 
-//                running = false;
+            pollActiveClients();
+            
             }   catch (SocketException se) {
                System.out.println ( "AGS Server closed on port " + LISTENING_PORT);
              } 
@@ -185,31 +213,52 @@ private void handleClientConnections ()  {
 
 class AGS_ServerClients {
     
-        private Vector<AGS_ServerClient> mClients = new Vector<AGS_ServerClient>();
-
-     /** 
-     * Adds given client to the server's client list. 
+    private Vector<AGS_ServerClient> mClients = new Vector<AGS_ServerClient>();
+    private Iterator<AGS_ServerClient> iter = null;
+    
+    public AGS_ServerClient Next() {return iter.next();}
+    
+    public Boolean hasNext() {
+        
+        if (iter == null) {
+           iter = mClients.iterator();
+        }
+        
+        if (iter.hasNext()) {
+          return true;
+        } else {
+          iter = null;
+          return false;
+        }
+    }
+    
+     /* Adds given client to the server's client list. 
      */ 
 
     public synchronized void addClient(AGS_ServerClient aClient) { 
         mClients.add(aClient); 
+        System.out.println ( "AGS Client connected " + aClient.Details());
     } 
 
     /** 
      * Deletes given client from the server's client list if 
      * the client is in the list. 
-     */ 
+     */
 
+    
+    
     public synchronized void deleteClient(AGS_ServerClient aClient) { 
         int clientIndex = mClients.indexOf(aClient); 
         if (clientIndex != -1) 
             mClients.removeElementAt(clientIndex); 
-    } 
+    }
 }
 
 
 class AGS_ServerClient extends Thread {
     private AGS_Server server;
+    private InetAddress addr;
+    private static final LocalDateTime timeStamp = LocalDateTime.now();
     private BufferedReader mSocketReader = null; 
     private BufferedOutputStream mSocketWriter = null; 
     private String mAGS_data = null;
@@ -227,6 +276,7 @@ class AGS_ServerClient extends Thread {
     
         try {
             server = ags_server;
+            addr = socket.getInetAddress();
             mSocketReader = new BufferedReader(new InputStreamReader(socket.getInputStream(),"UTF-8")); 
             mSocketWriter = new BufferedOutputStream(socket.getOutputStream()); 
             
@@ -234,7 +284,20 @@ class AGS_ServerClient extends Thread {
         
         }
     }
+    public String Details() {
+        String details;
+        details = addr.getHostName() + "(" + addr.getHostAddress() + ")";
+        details += "Started:" + timeStamp.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);  
+        return details;
+    }
     
+    public Long ConnectionDuration() {
+        return Duration.between(LocalDateTime.now(), timeStamp).getSeconds();
+    }
+    
+    public String ConnectionStatus() {
+        return status.toString();
+    }
     public void processAGS() {
         
         try {

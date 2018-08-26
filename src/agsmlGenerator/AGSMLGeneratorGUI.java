@@ -142,6 +142,8 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
         jButtonClientSave = new javax.swing.JButton();
         jTextServer = new javax.swing.JTextField();
         jTextServerPort = new javax.swing.JTextField();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTree1 = new javax.swing.JTree();
         jScrollPane1 = new javax.swing.JScrollPane();
         log = new javax.swing.JTextArea();
 
@@ -396,6 +398,10 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
         );
 
         jTabbedPane1.addTab("Client", jPanel4);
+
+        jScrollPane2.setViewportView(jTree1);
+
+        jTabbedPane1.addTab("Clients", jScrollPane2);
 
         log.setColumns(20);
         log.setRows(5);
@@ -950,6 +956,7 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
         ags_server.setAGSDataStructure(jTextDictionaryFile.getText(),         
                  jComboBoxAGSMLDataStructureId.getSelectedItem().toString()); 
         ags_server.setLoggerTextArea(log, Level.FINE);
+        ags_server.setClientTree(jTree1);
         ags_server.start();
         
     }//GEN-LAST:event_jButtonStartServerActionPerformed
@@ -1038,6 +1045,7 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField jTextDictionaryFile;
     private javax.swing.JTextField jTextInputSource;
@@ -1046,6 +1054,7 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
     private javax.swing.JTextField jTextProcessFile;
     private javax.swing.JTextField jTextServer;
     private javax.swing.JTextField jTextServerPort;
+    private javax.swing.JTree jTree1;
     private javax.swing.JButton jbuttonGenerate;
     private javax.swing.JTextArea log;
     // End of variables declaration//GEN-END:variables
