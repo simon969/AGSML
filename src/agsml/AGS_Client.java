@@ -22,6 +22,9 @@ import static agsml.AGS_Server.LISTENING_PORT;
 import static agsml.AGS_Server.HOSTNAME;
 import static agsml.AGS_Server.ClientStatus;
 import java.io.FileReader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 /**
  *
  * @author Simon
@@ -37,6 +40,10 @@ public class AGS_Client extends Thread {
     
     private String mAGS_fileIN;
     private String mXML_fileOUT;
+    
+    private String mDB_Connect;
+    private String mDB_PStatement;
+    private final int mXML_paramId = 1;
     
     private String mAGS_data;
     private String mXML_data;
@@ -80,6 +87,21 @@ public class AGS_Client extends Thread {
      public String getXMLData() {
         return mXML_data;
      }
+     public void setXMLDatabaseSave(String DbConnection, 
+                                    String PStatement) {
+         mDB_Connect = DbConnection;
+         mDB_PStatement = PStatement;
+     }
+     public void setXMLFileSave(){ setXMLFileSave("");}
+     
+     public void setXMLFileSave(String fileName){
+        if (fileName == null && mAGS_fileIN != null) {
+          int ext = mAGS_fileIN.lastIndexOf("ags");
+        mXML_fileOUT = mAGS_fileIN.substring(0, ext) + "xml";  
+        } else {
+        mXML_fileOUT = fileName;
+        }
+     } 
      
      private void receiveXMLData() { 
          StringBuilder sb= new StringBuilder();
@@ -111,9 +133,8 @@ public class AGS_Client extends Thread {
      }
      public void readAGSData(){
         if (!mAGS_fileIN.isEmpty()){
+        setXMLFileSave();
         setAGSData(usingBufferedReader(mAGS_fileIN));
-        int ext = mAGS_fileIN.lastIndexOf("ags");
-        mXML_fileOUT = mAGS_fileIN.substring(0, ext) + "xml";
         System.out.println("AGS data file read (" + mAGS_fileIN + ")");
       }
      }
@@ -136,8 +157,48 @@ public class AGS_Client extends Thread {
 	}
 	return contentBuilder.toString();
     }
-     
-        public void saveXMLData() {
+       private void saveXMLData(){
+           
+           saveXMLDataToFile();
+           saveXMLDataToDatabase();
+           
+           status=agsml.AGS_Server.ClientStatus.SAVED_XML;
+       }
+       
+       private void  saveXMLDataToDatabase () {
+           
+        if (mDB_Connect == null) {
+            return;
+        }
+       try { 
+           
+           Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+           Connection m_Conn = DriverManager.getConnection(mDB_Connect);
+                    
+           PreparedStatement ps = m_Conn.prepareStatement(mDB_PStatement);
+           
+            // set the preparedstatement parameters
+            ps.setString(mXML_paramId,mXML_data);
+            // call executeUpdate to execute our sql update statement
+            ps.executeUpdate();
+            ps.close();
+           
+       }
+ 
+       catch (Exception ex) {
+         System.out.println(ex.getMessage());
+        ex.printStackTrace();
+       }
+//       catch (FileNotFoundException e) {
+//           
+//       }
+    }
+        public void saveXMLDataToFile() {
+        
+        if (mXML_fileOUT == null) {
+            return;
+        }
+        
         BufferedWriter out = null;
             try  
                 {
@@ -146,7 +207,7 @@ public class AGS_Client extends Thread {
                 out.write(mXML_data);
                 out.close();
                 System.out.println("XML data file written (" + mXML_fileOUT + ")");
-                status=agsml.AGS_Server.ClientStatus.SAVED_XML;
+             
                 }   
                 catch (IOException e) {
                 System.err.println("Error: " + e.getMessage());
