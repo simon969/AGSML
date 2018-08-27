@@ -16,8 +16,7 @@ import agsml.AGS_Server;
  *
  * @author thomsonsj
  */
-public class AGSMLGenerator {
-
+public class agsmlConverter {
 // public static void  AGSMLGenerator() {
         
  //   }
@@ -33,9 +32,10 @@ public static void main(String[] args) {
         boolean vflag = false;
         String filename = "";
         int port = 0;
-        
+                       
         while (i < args.length && args[i].startsWith("-")) {
             arg = args[i++];
+            
                 // use this type of check for "wordy" arguments
             if (arg.equals("-gui")) {
                 System.out.println("displaying GUI");
