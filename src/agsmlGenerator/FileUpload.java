@@ -43,7 +43,7 @@ public class FileUpload extends javax.swing.JFrame {
         jTextField2 = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<String>();
+        jList1 = new javax.swing.JList<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -74,10 +74,10 @@ public class FileUpload extends javax.swing.JFrame {
 
         jLabel1.setText("File1");
 
-        jList1.setModel(new javax.swing.AbstractListModel() {
+        jList1.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "INSERT INTO ge_data (data_xml) VALUES(?);", "INSERT INTO ge_data (data_ags) VALUES(?);", "UPDATE ge_data set data_xml = ? WHERE id = 1; ", "UPDATE ge_data set data_ags = ? WHERE id = 1;" };
             public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
+            public String getElementAt(int i) { return strings[i]; }
         });
         jScrollPane2.setViewportView(jList1);
 

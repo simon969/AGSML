@@ -53,7 +53,7 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
         loadProperties();
         
         this.jTextInputSource.setText(props.getProperty("InputSource"));
-        this.jTextOutputFolder.setText(props.getProperty("OutputFoldere"));
+        this.jTextOutputFolder.setText(props.getProperty("OutputFolder"));
         this.jTextDictionaryFile.setText(props.getProperty("DictionaryFile"));
         this.jTextLocalPort.setText(props.getProperty("LocalPort"));
         this.jTextServer.setText(props.getProperty("Server"));
@@ -64,20 +64,20 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
         
     }
     
-    String getJarFolder() {
-        try {
-        return new File(AGSMLGenerator.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getAbsolutePath();
-        } catch (Exception e) {
-            return "";
-            
-        }
-    }
+   // String getJarFolder() {
+   //     try {
+   //   return new File(AGSMLConverter.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getAbsolutePath();
+   //     } catch (Exception e) {
+   //         return "";
+   //         
+   //     }
+   // }
     public void loadProperties() {
     try {
      
     //to load application's properties, we use this class
     props = new Properties();
-    props.setProperty("jar_folder",getJarFolder());
+   // props.setProperty("jar_folder",getJarFolder());
  
     FileInputStream file;
 
@@ -116,12 +116,8 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jbuttonGenerate = new javax.swing.JButton();
-        jButtonCancel = new javax.swing.JButton();
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jTabbedPane1 = new javax.swing.JTabbedPane();
-        jPanel1 = new javax.swing.JPanel();
-        jButtonIProcessFile = new javax.swing.JButton();
-        jTextProcessFile = new javax.swing.JTextField();
         jPanel2 = new javax.swing.JPanel();
         jTextInputSource = new javax.swing.JTextField();
         jButtonInputData = new javax.swing.JButton();
@@ -133,79 +129,30 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jTextDictionaryFile = new javax.swing.JTextField();
+        jTextProcessFile = new javax.swing.JTextField();
+        jButtonIProcessFile = new javax.swing.JButton();
+        jbuttonRun = new javax.swing.JButton();
+        jButtonClose = new javax.swing.JButton();
+        jTextServer = new javax.swing.JTextField();
+        jTextServerPort = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         jTextLocalPort = new javax.swing.JTextField();
         jButtonStartServer = new javax.swing.JButton();
         jButtonStopServer = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
-        jPanel4 = new javax.swing.JPanel();
-        jButtonClientSave = new javax.swing.JButton();
-        jTextServer = new javax.swing.JTextField();
-        jTextServerPort = new javax.swing.JTextField();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTree1 = new javax.swing.JTree();
         jScrollPane1 = new javax.swing.JScrollPane();
         log = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("AGS to XML Conversion Tool");
-
-        jbuttonGenerate.setText("Generate");
-        jbuttonGenerate.setToolTipText("");
-        jbuttonGenerate.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jbuttonGenerateMouseClicked(evt);
-            }
-        });
-        jbuttonGenerate.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jbuttonGenerateActionPerformed(evt);
-            }
-        });
-
-        jButtonCancel.setText("Cancel");
-        jButtonCancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonCancelActionPerformed(evt);
-            }
-        });
-
-        jButtonIProcessFile.setText("...");
-        jButtonIProcessFile.setToolTipText("");
-        jButtonIProcessFile.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonIProcessFileActionPerformed(evt);
-            }
-        });
-
-        jTextProcessFile.setText("...ProcessFile");
-        jTextProcessFile.setToolTipText("");
-        jTextProcessFile.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextProcessFileActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTextProcessFile, javax.swing.GroupLayout.DEFAULT_SIZE, 539, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addComponent(jButtonIProcessFile)
-                .addContainerGap())
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonIProcessFile)
-                    .addComponent(jTextProcessFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(143, Short.MAX_VALUE))
-        );
-
-        jTabbedPane1.addTab("SQL Process File", jPanel1);
 
         jTextInputSource.setText("...InputSource");
         jTextInputSource.setToolTipText("");
@@ -247,38 +194,121 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
 
         jComboBoxAGSMLDataStructureId.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
-        jLabel1.setText("AGSDictionaryId");
+        jLabel1.setText("DictionaryId");
 
-        jLabel2.setText("AGSMLDataStructureId");
+        jLabel2.setText("DataStructureId");
 
         jTextDictionaryFile.setText("...DictionaryFile");
         jTextDictionaryFile.setToolTipText("");
+
+        jTextProcessFile.setText("...ProcessFile");
+        jTextProcessFile.setToolTipText("");
+        jTextProcessFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextProcessFileActionPerformed(evt);
+            }
+        });
+
+        jButtonIProcessFile.setText("...");
+        jButtonIProcessFile.setToolTipText("");
+        jButtonIProcessFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonIProcessFileActionPerformed(evt);
+            }
+        });
+
+        jbuttonRun.setText("Run");
+        jbuttonRun.setToolTipText("");
+        jbuttonRun.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jbuttonRunMouseClicked(evt);
+            }
+        });
+        jbuttonRun.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jbuttonRunActionPerformed(evt);
+            }
+        });
+
+        jButtonClose.setText("Close");
+        jButtonClose.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonCloseActionPerformed(evt);
+            }
+        });
+
+        jTextServer.setText("...server");
+
+        jTextServerPort.setText("...port");
+
+        jLabel4.setText("InputSource");
+
+        jLabel5.setText("OutputFiolder");
+
+        jLabel6.setText("ProcessFile");
+
+        jLabel7.setText("Port");
+
+        jLabel8.setText("DictionaryFile");
+
+        jLabel9.setText("Server");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(21, 21, 21)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTextOutputFolder, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jTextOutputFolder)
+                            .addComponent(jTextDictionaryFile)
                             .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE)))
-                        .addGap(60, 60, 60)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jComboBoxAGSDictionaryId, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jComboBoxAGSMLDataStructureId, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addComponent(jTextDictionaryFile)
-                    .addComponent(jTextInputSource))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jButtonInputData, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButtonOutputFolder, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButtonDictionaryFile, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel2))
+                                .addGap(56, 56, 56)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jComboBoxAGSDictionaryId, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jComboBoxAGSMLDataStructureId, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(jTextInputSource)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jButtonClose, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
+                                .addGap(27, 27, 27)))
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(jTextServer, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(22, 22, 22)
+                                .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGap(18, 18, 18)
+                                .addComponent(jTextServerPort, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jTextProcessFile, javax.swing.GroupLayout.PREFERRED_SIZE, 321, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(jPanel2Layout.createSequentialGroup()
+                                    .addGap(9, 9, 9)
+                                    .addComponent(jbuttonRun, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jButtonIProcessFile, javax.swing.GroupLayout.Alignment.TRAILING))
+                            .addComponent(jButtonDictionaryFile, javax.swing.GroupLayout.Alignment.TRAILING))
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(jButtonOutputFolder)))
+                    .addComponent(jButtonInputData, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -287,24 +317,42 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonInputData)
-                    .addComponent(jTextInputSource, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jTextInputSource, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonOutputFolder)
-                    .addComponent(jTextOutputFolder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jTextOutputFolder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonDictionaryFile)
-                    .addComponent(jTextDictionaryFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jComboBoxAGSDictionaryId, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                    .addComponent(jTextDictionaryFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jComboBoxAGSMLDataStructureId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
-                .addContainerGap())
+                    .addComponent(jComboBoxAGSDictionaryId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(11, 11, 11)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jComboBoxAGSMLDataStructureId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(21, 21, 21)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextProcessFile, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonIProcessFile)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jTextServer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jTextServerPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jButtonClose)
+                    .addComponent(jbuttonRun))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("AGS to AGSML", jPanel2);
@@ -327,75 +375,41 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
 
         jLabel3.setText("Localhost:");
 
+        jScrollPane2.setViewportView(jTree1);
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap(553, Short.MAX_VALUE)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButtonStartServer, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jButtonStopServer, javax.swing.GroupLayout.Alignment.TRAILING))
-                .addContainerGap())
-            .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel3)
-                .addGap(127, 127, 127)
-                .addComponent(jTextLocalPort, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jScrollPane2)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jButtonStopServer, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jButtonStartServer, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jTextLocalPort, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(jTextLocalPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 79, Short.MAX_VALUE)
-                .addComponent(jButtonStartServer)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonStopServer)
-                .addGap(10, 10, 10))
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 293, Short.MAX_VALUE)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addGap(5, 5, 5)
+                        .addComponent(jTextLocalPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButtonStartServer)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButtonStopServer)))
+                .addContainerGap())
         );
 
         jTabbedPane1.addTab("Server", jPanel3);
-
-        jButtonClientSave.setText("Save");
-        jButtonClientSave.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonClientSaveActionPerformed(evt);
-            }
-        });
-
-        jTextServer.setText("...server");
-
-        jTextServerPort.setText("...port");
-
-        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-        jPanel4.setLayout(jPanel4Layout);
-        jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTextServer, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextServerPort, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 229, Short.MAX_VALUE)
-                .addComponent(jButtonClientSave)
-                .addContainerGap())
-        );
-        jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonClientSave)
-                    .addComponent(jTextServer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextServerPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(143, Short.MAX_VALUE))
-        );
-
-        jTabbedPane1.addTab("Client", jPanel4);
 
         log.setColumns(20);
         log.setRows(5);
@@ -408,35 +422,27 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
-                    .addComponent(jTabbedPane1, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jButtonCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jbuttonGenerate, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jTabbedPane1)
+                    .addComponent(jScrollPane1))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 211, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jbuttonGenerate)
-                    .addComponent(jButtonCancel))
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 349, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1)
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jbuttonGenerateMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jbuttonGenerateMouseClicked
+    private void jbuttonRunMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jbuttonRunMouseClicked
 
            
-    }//GEN-LAST:event_jbuttonGenerateMouseClicked
+    }//GEN-LAST:event_jbuttonRunMouseClicked
     private int initFileSetTest101() {
         
         this.jTextOutputFolder.setText("C:\\Users\\thomsonsj\\Documents\\2016\\TTT Central C410\\gINT\\kmlShaftPoints\\Shafts2.xml");
@@ -662,19 +668,21 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
 	}
 	return contentBuilder.toString();
     }
-    private void jbuttonGenerateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbuttonGenerateActionPerformed
-       
     
-    // Use AGSMLConveter 
-    if (jTabbedPane1.getSelectedIndex() == 0) {
+    private boolean tryAGSConverter () {
+        
+        boolean retvar = false;
         
         AGS_Converter ac = new AGS_Converter(); 
         ac.set_LoggerTextArea(log, Level.FINE);
         
+        if (!this.jTextProcessFile.getText().isEmpty() && !jTextProcessFile.getText().equalsIgnoreCase("...ProcessFile")) {
+            ac.Process (jTextProcessFile.getText());
+            retvar = true;
+        } 
+        
         if (!jTextInputSource.getText().isEmpty() && !jTextInputSource.getText().equalsIgnoreCase("...InputSource")) {
-
            if (FileExist(jTextInputSource.getText()) == 1) { 
-  
                String ext = FileExtention(jTextInputSource.getText());
                if (ext.equalsIgnoreCase("ags")) {
                ac.AGS_to_AGSML(jTextInputSource.getText(), 
@@ -682,6 +690,7 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
                        jTextDictionaryFile.getText(), 
                        jComboBoxAGSDictionaryId.getSelectedItem().toString(), 
                        jComboBoxAGSMLDataStructureId.getSelectedItem().toString());     
+               retvar = true;
                }
 
                if (ext.equalsIgnoreCase("mdb") || ext.equalsIgnoreCase("gpj")) { 
@@ -690,6 +699,7 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
                         jTextDictionaryFile.getText(), 
                         jComboBoxAGSDictionaryId.getSelectedItem().toString(), 
                         jComboBoxAGSMLDataStructureId.getSelectedItem().toString());
+               retvar = true;
                }
 
            } else
@@ -698,58 +708,20 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
                        jTextOutputFolder.getText(), 
                        jTextDictionaryFile.getText(), 
                        jComboBoxAGSDictionaryId.getSelectedItem().toString(), 
-                       jComboBoxAGSMLDataStructureId.getSelectedItem().toString());  
+                       jComboBoxAGSMLDataStructureId.getSelectedItem().toString());
+                retvar = true;
         }
-    }
-    
-    // Use AGS_Converter with process file
-    if (jTabbedPane1.getSelectedIndex() == 1) {
-        AGS_Converter ac = new AGS_Converter(); 
-        ac.set_LoggerTextArea(log, Level.FINE);
         
-        if (!this.jTextProcessFile.getText().isEmpty() && !jTextProcessFile.getText().equalsIgnoreCase("...ProcessFile")) {
-            ac.Process (jTextProcessFile.getText());
-        }
-    } 
-    
-    // Use localhost AGS_server
-    if (jTabbedPane1.getSelectedIndex() == 2) {
-        if (ags_server != null) {
-            if (!jTextInputSource.getText().isEmpty() && !jTextInputSource.getText().equalsIgnoreCase("...InputSource")) {
-               if (FileExist(jTextInputSource.getText()) == 1) { 
-
-                   String ext = FileExtention(jTextInputSource.getText());
-                   if (ext.equalsIgnoreCase("ags")) {
-                      // String ags_data = usingBufferedReader (jTextInputSource.getText());
-                       // if (ags_data.length()> 0) {
-                            try {
-                                int port = Integer.parseInt(jTextLocalPort.getText());
-                            
-                                AGS_Client ac =  new AGS_Client ("localhost", port);
-                                ags_clients.add(ac);
-                               // ac.setAGSData(ags_data);
-                               ac.setAGSFile(jTextInputSource.getText());
-                               ac.start();
-                             //   ac.join();
-                             //   String xml_data = ac.getXMLData();
-                             //   log.append(xml_data);
-                            }
-                            
-                            catch (Exception e) {
-                               log.append(newline + e.getMessage());
-                            }
-                            
-                        //}
-                   }
-               }
-            }
-        }
+    return retvar;    
     }
-      // Use foreign AGS_server
-    if (jTabbedPane1.getSelectedIndex() == 3) {
-          if (!jTextInputSource.getText().isEmpty() && !jTextInputSource.getText().equalsIgnoreCase("...InputSource")) {
-               if (FileExist(jTextInputSource.getText()) == 1) { 
-
+    
+    private boolean tryAGSServer() {
+        
+        boolean retvar = false;
+                
+        if (!jTextServer.getText().isEmpty() && !jTextServerPort.getText().isEmpty()) {
+            if (!jTextInputSource.getText().isEmpty() && !jTextInputSource.getText().equalsIgnoreCase("...InputSource")) {
+                if (FileExist(jTextInputSource.getText()) == 1) { 
                    String ext = FileExtention(jTextInputSource.getText());
                    if (ext.equalsIgnoreCase("ags")) {
                       // String ags_data = usingBufferedReader (jTextInputSource.getText());
@@ -762,6 +734,7 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
                                // ac.setAGSData(ags_data);
                                ac.setAGSFile(jTextInputSource.getText());
                                ac.start();
+                               retvar = true;
                              //   ac.join();
                              //   String xml_data = ac.getXMLData();
                              //   log.append(xml_data);
@@ -769,6 +742,7 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
                             
                             catch (Exception e) {
                                log.append(newline + e.getMessage());
+                               retvar = false;
                             }
                             
                         //}
@@ -776,8 +750,18 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
                }
             }
         }
+        return retvar;
+    }
+    
+    
+    
+    private void jbuttonRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbuttonRunActionPerformed
+       
+        tryAGSServer();
+        tryAGSConverter();
         
-    }//GEN-LAST:event_jbuttonGenerateActionPerformed
+      
+    }//GEN-LAST:event_jbuttonRunActionPerformed
     private void updateComboBoxAGSDictionaryId (){
       try {  
           if (!jTextDictionaryFile.getText().isEmpty() && !jTextDictionaryFile.getText().equalsIgnoreCase("...DictionaryFile")) { 
@@ -804,9 +788,73 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
         }    
     }          
                
-    private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
+    private void jButtonCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCloseActionPerformed
         this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-    }//GEN-LAST:event_jButtonCancelActionPerformed
+    }//GEN-LAST:event_jButtonCloseActionPerformed
+
+    private void jTextProcessFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextProcessFileActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextProcessFileActionPerformed
+
+    private void jButtonIProcessFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonIProcessFileActionPerformed
+
+        try {
+            init_FileChooser();
+
+            fc.setMultiSelectionEnabled(false);
+            fc.setDialogTitle("Select Process file");
+            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fc.setFileFilter(new FileNameExtensionFilter("AGSML Process(*.agsml;*.xml)", "agsml","xml"));
+
+            if (!this.jTextProcessFile.getText().isEmpty()) {
+                File file = new File (this.jTextProcessFile.getText());
+                fc.setSelectedFile(file);
+            }
+
+            int result =fc.showOpenDialog(this);
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File file = fc.getSelectedFile();
+                this.jTextProcessFile.setText(file.getAbsolutePath());
+                //This is where a real application would open the file.
+                log.append("Opening: " + file.getName() + "." + newline);
+            } else {
+                log.append("Open command cancelled by user." + newline);
+            }
+            log.setCaretPosition(log.getDocument().getLength());
+        }
+        catch (Exception ex) {
+            log.append(ex.getMessage());
+        }
+    }//GEN-LAST:event_jButtonIProcessFileActionPerformed
+
+    private void jButtonStopServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStopServerActionPerformed
+        // TODO add your handling code here:
+        ags_server.shutdown();
+        ags_server= null;
+    }//GEN-LAST:event_jButtonStopServerActionPerformed
+
+    private void jButtonStartServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStartServerActionPerformed
+        // TODO add your handling code here:
+        int port = Integer.parseInt(jTextLocalPort.getText());
+
+        if (ags_server != null ) {
+            ags_server.shutdown();
+            ags_server= null;
+        }
+
+        ags_server = new AGS_Server (port);
+
+        ags_server.setAGSDictionary(jTextDictionaryFile.getText(),
+            jComboBoxAGSDictionaryId.getSelectedItem().toString());
+
+        ags_server.setAGSDataStructure(jTextDictionaryFile.getText(),
+            jComboBoxAGSMLDataStructureId.getSelectedItem().toString());
+        ags_server.setLoggerTextArea(log, Level.FINE);
+        ags_server.setClientTree(jTree1);
+        ags_server.start();
+
+    }//GEN-LAST:event_jButtonStartServerActionPerformed
 
     private void jButtonDictionaryFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDictionaryFileActionPerformed
 
@@ -897,78 +945,6 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextInputSourceActionPerformed
 
-    private void jTextProcessFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextProcessFileActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextProcessFileActionPerformed
-
-    private void jButtonIProcessFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonIProcessFileActionPerformed
-
-        try {
-            init_FileChooser();
-
-            fc.setMultiSelectionEnabled(false);
-            fc.setDialogTitle("Select Process file");
-            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            fc.setFileFilter(new FileNameExtensionFilter("AGSML Process(*.agsml;*.xml)", "agsml","xml"));
-
-            if (!this.jTextProcessFile.getText().isEmpty()) {
-                File file = new File (this.jTextProcessFile.getText());
-                fc.setSelectedFile(file);
-            }
-
-            int result =fc.showOpenDialog(this);
-
-            if (result == JFileChooser.APPROVE_OPTION) {
-                File file = fc.getSelectedFile();
-                this.jTextProcessFile.setText(file.getAbsolutePath());
-                //This is where a real application would open the file.
-                log.append("Opening: " + file.getName() + "." + newline);
-            } else {
-                log.append("Open command cancelled by user." + newline);
-            }
-            log.setCaretPosition(log.getDocument().getLength());
-        }
-        catch (Exception ex) {
-            log.append(ex.getMessage());
-        }
-    }//GEN-LAST:event_jButtonIProcessFileActionPerformed
-
-    private void jButtonStartServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStartServerActionPerformed
-        // TODO add your handling code here:
-        int port = Integer.parseInt(jTextLocalPort.getText());
-        
-        if (ags_server != null ) {
-            ags_server.shutdown();
-            ags_server= null;
-        }
-        
-        ags_server = new AGS_Server (port);
-        
-        ags_server.setAGSDictionary(jTextDictionaryFile.getText(),
-                 jComboBoxAGSDictionaryId.getSelectedItem().toString());
-        
-        ags_server.setAGSDataStructure(jTextDictionaryFile.getText(),         
-                 jComboBoxAGSMLDataStructureId.getSelectedItem().toString()); 
-        ags_server.setLoggerTextArea(log, Level.FINE);
-        ags_server.start();
-        
-    }//GEN-LAST:event_jButtonStartServerActionPerformed
-
-    private void jButtonStopServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStopServerActionPerformed
-        // TODO add your handling code here:
-        ags_server.shutdown();
-        ags_server= null;
-    }//GEN-LAST:event_jButtonStopServerActionPerformed
-
-    private void jButtonClientSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClientSaveActionPerformed
-        // TODO add your handling code here:
-        for (AGS_Client client : ags_clients) {
-            if (!client.isAlive()) {
-                    System.out.println(client.toString());
-            }
-        }
-    }//GEN-LAST:event_jButtonClientSaveActionPerformed
-
     /**
      * @param args the command line arguments
      */
@@ -1020,8 +996,8 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonCancel;
-    private javax.swing.JButton jButtonClientSave;
+    private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JButton jButtonClose;
     private javax.swing.JButton jButtonDictionaryFile;
     private javax.swing.JButton jButtonIProcessFile;
     private javax.swing.JButton jButtonInputData;
@@ -1033,11 +1009,16 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField jTextDictionaryFile;
     private javax.swing.JTextField jTextInputSource;
@@ -1046,7 +1027,8 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
     private javax.swing.JTextField jTextProcessFile;
     private javax.swing.JTextField jTextServer;
     private javax.swing.JTextField jTextServerPort;
-    private javax.swing.JButton jbuttonGenerate;
+    private javax.swing.JTree jTree1;
+    private javax.swing.JButton jbuttonRun;
     private javax.swing.JTextArea log;
     // End of variables declaration//GEN-END:variables
 }

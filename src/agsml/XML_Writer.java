@@ -26,7 +26,6 @@ import java.util.logging.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.xml.bind.DatatypeConverter;
-import agsml.Base_Writer;
         /**
  *
  * @author thomsonsj
