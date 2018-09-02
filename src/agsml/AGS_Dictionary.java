@@ -53,15 +53,40 @@ public class AGS_Dictionary extends XML_DOM {
            this.value=value;
        }       
     }
+    public String getAGSDictionaryId(AGSVersion ags) {
+        switch (ags) {
+            case NONE: 
+                return "NONE";
+            case AGS30: 
+                return "AGS3.0";  
+            case AGS31: 
+                return "AGS3.1";  
+            case AGS31a: 
+                return "AGS3.1a";    
+            case AGS403: 
+                return "AGS4.03";   
+            case AGS404: 
+               return "AGS4.04";  
+        }
+        return "NONE";
+    } 
+    
     public enum AGSVersion {
-            None (0)  {public int toInt() {return 0;}},
-            AGS30 (300) {public int toInt() {return 300;}},
-            AGS31 (310) {public int toInt() {return 310;}},
-            AGS31a (311) {public int toInt() {return 311;}},
-            AGS404 (400) {public int toInt() {return 400;}},
-            AGS403 (403) {public int toInt() {return 403;}};
+            NONE (0)  {public int toInt() {return 0;}
+                            public String toDictionaryId() {return "NONE";}},
+            AGS30 (300) {public int toInt() {return 300;}
+                            public String toDictionaryId() {return "AGS3.0";}},
+            AGS31 (310) {public int toInt() {return 310;}
+                            public String toDictionaryId() {return "AGS3.1";}},
+            AGS31a (311) {public int toInt() {return 311;}
+                            public String toDictionaryId() {return "AGS3.1a";}},
+            AGS403 (403) {public int toInt() {return 403;}
+                            public String toDictionaryId() {return "AGS4.03";}},
+            AGS404 (404) {public int toInt() {return 404;}
+                            public String toDictionaryId() {return "AGS4.04";}};
     private int value;     
        public abstract int toInt();
+       public abstract String toDictionaryId();
        private AGSVersion(int value) {
            this.value=value;
        }
@@ -79,12 +104,12 @@ public class AGS_Dictionary extends XML_DOM {
             case 404: 
                return AGSVersion.AGS404;  
         }
-        return AGSVersion.None;
+        return AGSVersion.NONE;
     } 
     public AGSVersion getAGSVersion() {
         
         String s1 = "0.0";
-        AGSVersion ags1 = AGSVersion.None;
+        AGSVersion ags1 = AGSVersion.NONE;
                 
         Node n1 = findSubNode("version");
         

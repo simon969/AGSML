@@ -30,6 +30,29 @@ public String HoleTableName() {
 public String HoleIdFieldName() {
         return HoleIdFieldName;
 };
+
+public int holecount() {
+    return rowcount(HoleTableName);
+}
+
+public int rowcount(String TableName) {
+   int rowcount = 0; 
+   AGS_ReaderLine.LineType result = FindTable (TableName);
+   if (result==AGS_ReaderLine.LineType.tableName) {
+       //read tableheader
+       result = NextLine();
+       //read tableunits
+       result = NextLine();
+       //read type
+       result = NextLine();
+       //read table data
+       while (NextLine()==AGS_ReaderLine.LineType.rowData) {
+          rowcount++;
+       }
+   }
+   return rowcount; 
+}
+
 public AGS_ReaderLine.LineType NextLine (){
  try {
             AGS_ReaderLine.LineType retval = AGS_ReaderLine.LineType.Empty;

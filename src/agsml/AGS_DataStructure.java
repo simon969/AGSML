@@ -16,20 +16,21 @@ import org.w3c.dom.Element;
 
 public class AGS_DataStructure extends XML_DOM {
         final String DataStructureAGSML = "DataStructureAGSML";
+        final String DataStructureSeries = "DataStructureSeries";
         final String DefaultDataStructureAGSMLId = "Default";
         final String DataStructureAGSMLId_AttributeTag = "id";
   public AGS_DataStructure(){
    }
   public AGS_DataStructure (String fXMLFile) throws Exception{
         super (fXMLFile,fileState.MUSTEXIST);
-        setDataStructureID(DefaultDataStructureAGSMLId); 
+        setDataStructureNode(DefaultDataStructureAGSMLId); 
     }   
    
    public AGS_DataStructure (String fXMLFile, String id) throws Exception {
        super (fXMLFile,fileState.MUSTEXIST);
-       setDataStructureID(id);
+       setDataStructureNode(id);
    }
- public Node setDataStructureID(String id)  {
+ public Node setDataStructureNode(String id)  {
     try {
            Node n1 = setRoot(DataStructureAGSML, DataStructureAGSMLId_AttributeTag, id);
            if (n1 == null) throw new Exception ("Failed set AGSStructureAGSML node, unable to find <DataStructureAGSML id=" + id + ">");
@@ -46,6 +47,8 @@ public class AGS_DataStructure extends XML_DOM {
   public NodeList allAGSDataStructureNodes() {
      return m_doc.getElementsByTagName(DataStructureAGSML);
   }
- 
+  public NodeList allAGSDataStructureSeriesNodes() {
+     return m_doc.getElementsByTagName(DataStructureSeries);
+  }
 }
 

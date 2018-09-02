@@ -195,9 +195,13 @@ public void Process(Node n1) {
         Collection data = null;
         Collection ags_header = null;
     //    Collection xml_header = null; 
-        String hole_id;
-        
+        String hole_id = "";
+        int count = 0; 
+        AGS_ReaderLine lr1 = m_lr.Copy();
+        int hole_count = lr1.holecount();
+               
         AGS_ReaderLine lr = m_lr.Copy();
+
         AGS_ReaderLine.LineType result = lr.FindTable(lr.HoleTableName());
      
         do {
@@ -214,22 +218,16 @@ public void Process(Node n1) {
                 lr.ReadLine();
                 data = lr.get_data();
                 hole_id = getData(ags_header, data, lr.HoleIdFieldName()); 
-                
                 if (IsHoleInList(hole_id) && ContainsSpecialCharacters(hole_id) == false) {
-          
-                    m_onlyHoleId = hole_id;
-                    
-                    setOutputFile (folderOut() + "\\" + hole_id + ".xml");
-            
-                    openFile(true);
-            
-                    Process (n1,null);
-            
-                    closeFile();
-      
-                    m_onlyHoleId = "";
-                    
-                    m_log.info("File " + fileOut() + " created ");  
+                     count++;
+                     m_log.log(Level.INFO, "Processing " + hole_id + " (" + count +" of " + hole_count + " holes)");
+                     m_onlyHoleId = hole_id;
+                     setOutputFile (folderOut() + "\\" + hole_id + ".xml");
+                     openFile(true);
+                     Process (n1,null);
+                     closeFile();
+                     m_onlyHoleId = "";
+                     m_log.info("File " + fileOut() + " created ");  
                 }
              
             }
@@ -470,6 +468,7 @@ protected int addHoles(Node n1) {
         
         AGS_ReaderLine.LineType result;
         int count = 0;
+        int hole_count = 0;
         boolean holeInList;
         Collection ags_header = null;
         Collection data = null;
@@ -477,8 +476,10 @@ protected int addHoles(Node n1) {
         String hole_id = null;
         Node n2 = null;
         
+        AGS_ReaderLine lr1 = m_lr.Copy();
+        hole_count = lr1.holecount();
+        
         AGS_ReaderLine lr = m_lr.Copy();
-
         result = lr.FindTable(lr.HoleTableName());
 
         if (result == AGS_ReaderLine.LineType.Error) {
@@ -504,12 +505,14 @@ protected int addHoles(Node n1) {
             data = lr.get_data();
             hole_id = getData(ags_header, data, lr.HoleIdFieldName());
             holeInList = IsHoleInList(hole_id);
+            
                  if (holeInList) {
                    addNodeAttrib("id",hole_id);
                      openNode ("Hole");
                         addRow (xml_header, data, false);
-                        count++;
                         if (n2 != null) {
+                            count++;
+                            m_log.log(Level.INFO, "Processing " + hole_id + " (" + count +" of " + hole_count + " holes)");
                             Process (n2, hole_id);
                         }
                     closeNode();
