@@ -39,6 +39,20 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
     public String HoleIdFieldName() {
         return HoleIdFieldName;
     };
+    
+    public int holecount() {
+    return rowcount(HoleTableName);
+    }
+    public int rowcount(String TableName) {
+        int rowcount = 0; 
+        AGS_ReaderLine.LineType result = FindTable (TableName);
+        if (result==AGS_ReaderLine.LineType.tableName) {
+            while (NextLine()==AGS_ReaderLine.LineType.rowData) {
+            rowcount =+ 1;
+            }
+        }
+        return rowcount; 
+    }
     public AGS_ReaderLine31 Copy() {
         AGS_ReaderLine31 lr1  =  new AGS_ReaderLine31(DataSource());
         return lr1;

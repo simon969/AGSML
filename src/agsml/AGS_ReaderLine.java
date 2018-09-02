@@ -18,7 +18,8 @@ public Collection<String> get_headers();
 public Collection<String> get_units();
 public Collection<String> get_data();
 public String get_tablename();  
-         
+public int rowcount (String tablename); 
+public int holecount ();
 public void setDataSource (String fName) ;
 public void setLogger(Logger log);
 public void setProperty (String Name, String Value );

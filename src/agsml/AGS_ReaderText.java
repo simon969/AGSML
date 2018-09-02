@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Collection;
 import java.util.logging.Logger;
+import java.util.Arrays;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 class AGS_ReaderText extends AGS_Base {
 //    private static final Logger log = Logger.getLogger(.class.getName() );
@@ -26,31 +29,85 @@ class AGS_ReaderText extends AGS_Base {
     private String m_str;
     private String m_substr;
     private boolean m_data_end;
-    
    
     private LinkedHashMap<String, Integer> m_tables;
     private LinkedHashMap<String, Integer> m_headers;
     private LinkedHashMap<String, Integer> m_units;
     private List<String> m_rowdata;
-
+    private List<String> m_ags;
+    
     private Collection m_coll_tables;
     private Iterator m_iter_tables;
     
     protected final String const_strCRLFQ = "\r\"\n";
     protected final String const_strCRLF= "\r\n";
-    protected final String const_TableIdentifier = "**";
-    protected final String const_HeaderIdentifier = "*";
-        
+    
+    protected final String const_TableIdentifierAGS3 = "**";
+    protected final String const_HeaderIdentifierAGS3 = "*";
+    
+    protected final String const_TableIdentifierAGS4 = "GROUP";
+    protected final String const_HeaderIdentifierAGS4 = "HEADING";
+    
+    protected AGS_Dictionary.AGSVersion ags_version = AGS_Dictionary.AGSVersion.AGS31a;
+    
     public AGS_ReaderText(String str){
 
     m_str = str;
+    String lines[] = m_str.split("\\n");
+    m_ags = Arrays.asList(lines);
     m_tables = new LinkedHashMap<String, Integer>();
-    
     m_rowdata = new ArrayList<String>();
     
-   find_tables();
+    findAGSVersion();
+    find_tables();
 
     }
+    public AGS_Dictionary.AGSVersion findAGSVersion() {
+     
+        ags_version=AGS_Dictionary.AGSVersion.NONE;
+     
+        for (int i=0; i < m_ags.size(); i++) {
+           String line = m_ags.get(i);
+           if (line.contains("*HOLE_ID")){
+               ags_version = AGS_Dictionary.AGSVersion.AGS31a;
+               break;
+           }
+           if (line.contains("LOCA_ID")){
+               ags_version = AGS_Dictionary.AGSVersion.AGS404;
+               break;
+           }
+        }
+        return ags_version;
+    }
+    
+    public AGS_Dictionary.AGSVersion AGSVersion() {
+        return ags_version;    
+    }
+    
+    private void readFile(String filename) {
+        m_ags = new ArrayList<String>();
+        StringBuilder sb = new StringBuilder();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filename));
+            String line;
+            while ((line = reader.readLine()) != null){
+            sb.append(line);    
+            m_ags.add(line);
+            }
+            reader.close();
+            m_str = sb.toString();
+            
+            m_tables = new LinkedHashMap<String, Integer>();
+            m_rowdata = new ArrayList<String>();
+            findAGSVersion();
+            find_tables();
+        }
+        catch (Exception e) {
+            System.err.format("Exception occurred trying to read '%s'.", filename);
+            e.printStackTrace();
+        }
+    }
+    
     public int table_count(){
         return m_tables.size();
     }
@@ -85,7 +142,7 @@ class AGS_ReaderText extends AGS_Base {
              data = get_substring(from_i, to_i, const_strCRLFQ);
              if (data.length() > 1 ) {
                  ch = data.subSequence(0, 2);
-                  if (const_TableIdentifier.contains(ch)){
+                  if (const_TableIdentifierAGS3.contains(ch)){
                     m_data_end = true;
                     m_i = from_i;
                 }
@@ -132,7 +189,30 @@ class AGS_ReaderText extends AGS_Base {
         return true;
        } else { return false;}
     }
-
+    public int find_headers() {
+        
+        if (ags_version.toInt() <= AGS_Dictionary.AGSVersion.AGS31a.toInt()) {
+           return find_headersAGS3();
+        };
+        
+        if (ags_version.toInt() > AGS_Dictionary.AGSVersion.AGS31a.toInt()) {
+           // return find_headersAGS4();
+           return -1;
+        };
+        
+        return -1;
+    }
+    
+    public int find_tables() {
+        if (ags_version.toInt() <= AGS_Dictionary.AGSVersion.AGS31a.toInt()) {
+           return find_tablesAGS3();
+        };
+        if (ags_version.toInt() > AGS_Dictionary.AGSVersion.AGS31a.toInt()) {
+           // return find_tablesAGS4();
+           return -1;
+        };
+        return -1;
+    }
     public int first_table(){
       m_coll_tables = m_tables.keySet();
       m_iter_tables = m_coll_tables.iterator();
@@ -144,13 +224,13 @@ class AGS_ReaderText extends AGS_Base {
         return  m_table_name;
     }
 
-    private int find_tables() {
+    private int find_tablesAGS3() {
         CharSequence ch;
         int from_i;
         int to_i;
         for (m_i=0; m_i<m_str.length()-2; m_i++) {
             ch = m_str.subSequence(m_i, m_i+2);
-            if (const_TableIdentifier.contains(ch)) {
+            if (const_TableIdentifierAGS3.contains(ch)) {
                 from_i = m_i;    
                 to_i = find_next(from_i,"\r",true,true);
                  m_substr = get_substring(from_i, to_i,const_strCRLFQ);
@@ -160,7 +240,7 @@ class AGS_ReaderText extends AGS_Base {
         return m_tables.size();
    }
    
-    private int find_headers() {
+    private int find_headersAGS3() {
            CharSequence ch1;
            CharSequence ch2;
            m_headers = new LinkedHashMap<String, Integer>();
@@ -178,11 +258,11 @@ class AGS_ReaderText extends AGS_Base {
                 if (m_substr.length() > 0) {
                    ch1 = m_substr.subSequence(0, 1);
                    ch2 = m_substr.subSequence(0, 2);
-                     if (const_TableIdentifier.contains(ch2)) {
+                     if (const_TableIdentifierAGS3.contains(ch2)) {
                             header_end = true;
                      }
                      else {
-                           if (const_HeaderIdentifier.contains(ch1)) {
+                           if (const_HeaderIdentifierAGS3.contains(ch1)) {
                              m_headers.put(m_substr, from_i);
                            }
                            else {

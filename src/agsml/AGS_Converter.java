@@ -31,7 +31,10 @@ public class AGS_Converter extends Base_Class {
        textAreaHandler.setLevel(level);
    }
    
-
+   public static AGS_Dictionary.AGSVersion getAGSVersion(String ags_file) {
+       AGS_ReaderText art = new AGS_ReaderText (ags_file);
+       return art.AGSVersion();
+   }
    public static void AGS_XML_filelist (String flist_file, String home_folder) {
         String ags_fname;
         String xml_fname;
