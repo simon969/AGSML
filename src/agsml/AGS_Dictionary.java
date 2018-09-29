@@ -72,22 +72,49 @@ public class AGS_Dictionary extends XML_DOM {
     } 
     
     public enum AGSVersion {
-            NONE (0)  {public int toInt() {return 0;}
-                            public String toDictionaryId() {return "NONE";}},
-            AGS30 (300) {public int toInt() {return 300;}
-                            public String toDictionaryId() {return "AGS3.0";}},
-            AGS31 (310) {public int toInt() {return 310;}
-                            public String toDictionaryId() {return "AGS3.1";}},
-            AGS31a (311) {public int toInt() {return 311;}
-                            public String toDictionaryId() {return "AGS3.1a";}},
-            AGS403 (403) {public int toInt() {return 403;}
-                            public String toDictionaryId() {return "AGS4.03";}},
-            AGS404 (404) {public int toInt() {return 404;}
-                            public String toDictionaryId() {return "AGS4.04";}};
-    private int value;     
-       public abstract int toInt();
-       public abstract String toDictionaryId();
-       private AGSVersion(int value) {
+        NONE    (0) {   public int toInt() {return 0;}
+                            public String toId() {return "NONE";}
+                            public double toDouble() {return 0;}
+                            public String toVersion() {return "";}
+                            public String toMajorVersion() {return "";}
+                        },
+        AGS30 (300) {   public int toInt() {return 300;}
+                            public String toId() {return "AGS3.0";}
+                            public double toDouble() {return 3;}
+                            public String toVersion() {return "3.0";}
+                            public String toMajorVersion() {return "3.0";}
+                        },
+        AGS31 (310) {   public int toInt() {return 310;}
+                            public String toId() {return "AGS3.1";}
+                            public double toDouble() {return 3.1;}
+                            public String toVersion() {return "3.1";}
+                            public String toMajorVersion() {return "3.0";}
+                        },
+        AGS31a (311){   public int toInt() {return 311;}
+                            public String toId() {return "AGS3.1a";}
+                            public double toDouble() {return 3.11;}
+                            public String toVersion() {return "3.11";}
+                            public String toMajorVersion() {return "3.0";}
+                        },
+        AGS403 (403){   public int toInt() {return 403;}
+                            public String toId() {return "AGS4.03";}
+                            public double toDouble() {return 4.03;}
+                            public String toVersion() {return "4.04";}
+                            public String toMajorVersion() {return "4.0";}
+                        },
+        AGS404 (404){   public int toInt() {return 404;}
+                            public String toId() {return "AGS4.04";}
+                            public double toDouble() {return 4.04;}
+                            public String toVersion() {return "4.04";}
+                            public String toMajorVersion() {return "4.0";}
+                        };
+        private int value;     
+        public abstract int toInt();
+        public abstract String toId();
+        public abstract double toDouble();
+        public abstract String toVersion();
+        public abstract String toMajorVersion();
+        private AGSVersion(int value) {
            this.value=value;
        }
     } 

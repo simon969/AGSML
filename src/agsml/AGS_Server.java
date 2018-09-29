@@ -43,7 +43,7 @@ public class AGS_Server extends Thread {
     private ServerSocket mServerSocket ; 
     private AGS_ServerClients mServerClients ;
     private String mDictionaryFile = "";
-    private String mDefaultDataStructure = "";
+    private String mDataStructureSeries = "";
     private String WorkingFolder = "" ;
    
     public enum ClientStatus {
@@ -65,6 +65,11 @@ public class AGS_Server extends Thread {
     SENT_AGS {
         public String toString() {
           return "SENT_AGS";
+        }
+    },
+    SAVED_AGS {
+        public String toString() {
+          return "SAVED_AGS";
         }
     },
     FAIL_AGS {
@@ -121,8 +126,8 @@ Logger getLogger() {
 public void setDictionaryFile(String xml_file) {
     mDictionaryFile = xml_file;
 }
-public void setDefaultDataStructure(String id){
-   mDefaultDataStructure = id;
+public void setDataStructureSeries(String id){
+   mDataStructureSeries = id;
 }        
  public void run() {
         // Open server socket for listening
@@ -191,7 +196,7 @@ private void handleClientConnections ()  {
                      
                      mServerClients.addClient (client); 
                      client.setDictionaryFile(mDictionaryFile);
-                     client.setDataStructure(mDefaultDataStructure);
+                     client.setDataStructureSeries(mDataStructureSeries);
                      client.start();
                 }
                 
@@ -271,7 +276,7 @@ class AGS_ServerClient extends Thread {
     private String mAGS_data = null;
     private String mXML_data = null;
     private String  mDictionaryFile = null;
-    private String  mDataStructure = null;
+    private String  mDataStructureSeries = null;
     private AGS_Server.ClientStatus status = AGS_Server.ClientStatus.EMPTY;
     private int BUFF_SIZE = AGS_Server.BUFF_SIZE;
     private final String AGS_START = "[ags_start]";
@@ -301,8 +306,8 @@ class AGS_ServerClient extends Thread {
     public void setDictionaryFile(String fileName) {
         mDictionaryFile = fileName;
     }
-    public void setDataStructure(String id) {
-        mDataStructure = id;
+    public void setDataStructureSeries(String id) {
+        mDataStructureSeries = id;
     }
     
     public Long ConnectionDuration() {
@@ -323,7 +328,7 @@ class AGS_ServerClient extends Thread {
             
             if (mAGS_data != null && 
                     mDictionaryFile != null &&
-                        mDataStructure != null) {
+                        mDataStructureSeries != null) {
                 
             AGS_ReaderText art = new AGS_ReaderText (mAGS_data);
             AGS_Dictionary dic = null;
@@ -332,18 +337,18 @@ class AGS_ServerClient extends Thread {
             
             if (art.ags_version.toInt() > AGS_Dictionary.AGSVersion.AGS31a.toInt()){
             alr = new AGS_ReaderLine40 (mAGS_data);    
-            dic = new AGS_Dictionary(mDictionaryFile,art.ags_version.toDictionaryId());
-            ds = new AGS_DataStructure(mDictionaryFile, mDataStructure);
+            dic = new AGS_Dictionary(mDictionaryFile,art.ags_version.toId());
+            ds = new AGS_DataStructure(mDictionaryFile, mDataStructureSeries, AGS_Dictionary.AGSVersion.AGS404);
             } 
             if (art.ags_version.toInt() <= AGS_Dictionary.AGSVersion.AGS31a.toInt()){
             alr = new AGS_ReaderLine31 (mAGS_data);
-            dic = new AGS_Dictionary(mDictionaryFile,art.ags_version.toDictionaryId());
-            ds = new AGS_DataStructure(mDictionaryFile, mDataStructure);
+            dic = new AGS_Dictionary(mDictionaryFile,art.ags_version.toId());
+            ds = new AGS_DataStructure(mDictionaryFile, mDataStructureSeries, AGS_Dictionary.AGSVersion.AGS31a);
             }
             
-            server.getLogger().info("        ags lines:" + art.m_ags_data.length());
-            server.getLogger().info("   identified ags:" + art.ags_version.toString());
-            server.getLogger().info("datastructure set:" + mDataStructure);
+            server.getLogger().info("        ags lines:" + art.AGSLines());
+            server.getLogger().info("   identified ags:" + art.AGSVersion().toString());
+            server.getLogger().info("datastructure set:" + mDataStructureSeries);
             
             if (alr != null && dic != null && ds != null) {
                            

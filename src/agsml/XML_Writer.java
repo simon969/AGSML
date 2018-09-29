@@ -91,7 +91,7 @@ class XML_Writer  extends Base_Writer {
    
     try {
         
-      Node n1 =  m_ds.m_root;
+      Node n1 =  m_ds.RootNode();
       Process(n1);
      
     } catch (Exception e) {

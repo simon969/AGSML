@@ -4,16 +4,18 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/AGS_Converter.java</file>
-            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/XML_DOM.java</file>
+            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/XML_Writer.java</file>
             <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/AGS_Dictionary.java</file>
             <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/AGS_Server.java</file>
-            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/AGS_ReaderLine31.java</file>
-            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsmlGenerator/AGSMLGeneratorGUI.java</file>
-            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/AGS_ReaderLine40.java</file>
-            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/AGS_Process.java</file>
-            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsmlGenerator/agsmlConverter.java</file>
+            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsmlGenerator/AgsmlGenerator.java</file>
+            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/AGS_Client.java</file>
+            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsmlGenerator/AgsmlGeneratorGUI.java</file>
+            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/AGS_XML_Query.java</file>
             <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/AGS_ReaderText.java</file>
-            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/AGS_DataStructure.java</file>
+            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/Main.java</file>
+            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/AGS_XML_Writer.java</file>
+            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/AGS_Base.java</file>
+            <file>file:/C:/Users/ThomsonSJ/Documents/NetBeansProjects/AGSML/src/agsml/Base_Class.java</file>
         </group>
     </open-files>
 </project-private>

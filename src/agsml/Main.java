@@ -278,7 +278,7 @@ public static void test1103(){
     String file_in = "C:/Users/thomsonsj/Documents/2014/A14 Cambridge to Huntingdon/ArcGIS/A14_C2H_J2A_10.xml";
     String file_out ="C:/Users/thomsonsj/Documents/2014/A14 Cambridge to Huntingdon/ArcGIS/A14_C2H_J2A_101.xml";
     XML_DOM xml_in = new XML_DOM (file_in);
-    NodeList nl = xml_in.m_doc.getElementsByTagName("Hole");
+    NodeList nl = xml_in.doc().getElementsByTagName("Hole");
     AGS_XML_Query q = new AGS_XML_Query();
     NodeList n2 = q.Where(nl,"HoleType","CPT");
     q.SaveFile(file_out);
@@ -288,7 +288,7 @@ public static void test1104(){
     String file_in = "C:/Users/thomsonsj/Documents/2014/A14 Cambridge to Huntingdon/ArcGIS/A14_C2H_J2A_10.xml";
     String file_out ="C:/Users/thomsonsj/Documents/2014/A14 Cambridge to Huntingdon/ArcGIS/A14_C2H_J2A_102.xml";
     XML_DOM xml_in = new XML_DOM (file_in);
-    NodeList nl = xml_in.m_doc.getElementsByTagName("Hole");
+    NodeList nl = xml_in.doc().getElementsByTagName("Hole");
     AGS_XML_Query q = new AGS_XML_Query();
     NodeList n2 = q.WhereNOT(nl,"HoleType","CPT");
     q.SaveFile(file_out);

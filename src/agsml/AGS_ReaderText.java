@@ -83,7 +83,13 @@ class AGS_ReaderText extends AGS_Base {
     public AGS_Dictionary.AGSVersion AGSVersion() {
         return ags_version;    
     }
-    
+    public int AGSLines() {
+        if (m_ags == null) {
+        return 0;
+        } else {
+        return m_ags.size();
+        }
+    }
     private void readFile(String filename) {
         m_ags = new ArrayList<String>();
         StringBuilder sb = new StringBuilder();

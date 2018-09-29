@@ -25,6 +25,7 @@ import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+
 /**
  *
  * @author Simon
@@ -32,18 +33,21 @@ import java.sql.PreparedStatement;
 
 public class AGS_Client extends Thread {
 
-    
     private String SERVER_HOSTNAME =  agsml.AGS_Server.HOSTNAME;
     private int SERVER_PORT = agsml.AGS_Server.LISTENING_PORT;
     private BufferedInputStream mSocketReader; 
     private BufferedWriter mSocketWriter; 
     
     private String mAGS_fileIN;
-    private String mXML_fileOUT;
-    
+    private String mAGS_fileOUT;
+
+    private String mXML_fileOUT;    
+
     private String mDB_Connect;
-    private String mDB_PStatement;
-    private final int mXML_paramId = 1;
+    private String mDB_StatementAGS;
+    private final int mDB_ParamIdAGS = 1;  
+    private String mDB_StatementXML;
+    private final int mDB_ParamIdXML = 1;
     
     private String mAGS_data;
     private String mXML_data;
@@ -76,7 +80,7 @@ public class AGS_Client extends Thread {
         
         
     } 
-    public void setAGSFile(String ags_fileIN) {
+    public void setAGSFileIN(String ags_fileIN) {
         mAGS_fileIN = ags_fileIN;
     }
      
@@ -90,7 +94,7 @@ public class AGS_Client extends Thread {
      public void setXMLDatabaseSave(String DbConnection, 
                                     String PStatement) {
          mDB_Connect = DbConnection;
-         mDB_PStatement = PStatement;
+         mDB_StatementXML = PStatement;
      }
      public void setXMLFileSave(){ setXMLFileSave("");}
      
@@ -102,7 +106,14 @@ public class AGS_Client extends Thread {
         mXML_fileOUT = fileName;
         }
      } 
-     
+     public void setAGSDatabaseSave(String DbConnection, 
+                                    String PStatement) {
+         mDB_Connect = DbConnection;
+         mDB_StatementXML = PStatement;
+     }
+     public void setAGSFileSave(String ags_fileOUT){
+         mAGS_fileOUT = ags_fileOUT;
+     }
      private void receiveXMLData() { 
          StringBuilder sb= new StringBuilder();
          byte buffer[] = new byte[BUFF_SIZE];
@@ -167,7 +178,7 @@ public class AGS_Client extends Thread {
        
        private void  saveXMLDataToDatabase () {
            
-        if (mDB_Connect == null) {
+        if (!empty(mDB_Connect) || !empty(mXML_data) || !empty(mDB_StatementXML)) {
             return;
         }
        try { 
@@ -175,10 +186,10 @@ public class AGS_Client extends Thread {
            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
            Connection m_Conn = DriverManager.getConnection(mDB_Connect);
                     
-           PreparedStatement ps = m_Conn.prepareStatement(mDB_PStatement);
+           PreparedStatement ps = m_Conn.prepareStatement(mDB_StatementXML);
            
             // set the preparedstatement parameters
-            ps.setString(mXML_paramId,mXML_data);
+            ps.setString(mDB_ParamIdXML,mXML_data);
             // call executeUpdate to execute our sql update statement
             ps.executeUpdate();
             ps.close();
@@ -195,7 +206,7 @@ public class AGS_Client extends Thread {
     }
         public void saveXMLDataToFile() {
         
-        if (mXML_fileOUT == null) {
+        if (!empty(mXML_fileOUT) || !empty(mXML_data)) {
             return;
         }
         
@@ -213,7 +224,62 @@ public class AGS_Client extends Thread {
                 System.err.println("Error: " + e.getMessage());
                 }
     }
-     
+    private void saveAGSData(){
+           
+           saveAGSDataToFile();
+           saveAGSDataToDatabase();
+           
+           status=agsml.AGS_Server.ClientStatus.SAVED_AGS;
+       }
+       
+       private void  saveAGSDataToDatabase () {
+           
+        if (!empty(mDB_Connect) || !empty(mDB_StatementAGS)|| !empty(mAGS_data)) {
+            return;
+        }
+       try { 
+           
+           Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+           Connection m_Conn = DriverManager.getConnection(mDB_Connect);
+                    
+           PreparedStatement ps = m_Conn.prepareStatement(mDB_StatementAGS);
+           
+            // set the preparedstatement parameters
+            ps.setString(mDB_ParamIdAGS,mAGS_data);
+            // call executeUpdate to execute our sql update statement
+            ps.executeUpdate();
+            ps.close();
+           
+       }
+ 
+       catch (Exception ex) {
+         System.out.println(ex.getMessage());
+        ex.printStackTrace();
+       }
+//       catch (FileNotFoundException e) {
+//           
+//       }
+    }
+        public void saveAGSDataToFile() {
+        
+        if (mAGS_fileOUT == null) {
+            return;
+        }
+        
+        BufferedWriter out = null;
+            try  
+                {
+                FileWriter fstream = new FileWriter(mAGS_fileOUT,false); //true tells to append data.
+                out = new BufferedWriter(fstream);
+                out.write(mAGS_data);
+                out.close();
+                System.out.println("AGS data file written (" + mAGS_fileOUT + ")");
+             
+                }   
+                catch (IOException e) {
+                System.err.println("Error: " + e.getMessage());
+                }
+    } 
      public void run() {
         // Open server socket for listening
         //start listening on the server socket 
@@ -225,6 +291,10 @@ public class AGS_Client extends Thread {
             }    
             
             if (status == agsml.AGS_Server.ClientStatus.READY_AGS) {
+                 saveAGSData();
+            }
+            
+            if (status == agsml.AGS_Server.ClientStatus.SAVED_AGS) {
                  sendAGSData();
             }
             
@@ -279,6 +349,10 @@ public class AGS_Client extends Thread {
         }
 
     }
+    private static boolean empty( final String s ) {
+  // Null-safe, short-circuit evaluation.
+  return s == null || s.trim().isEmpty();
+} 
 }
 
         
