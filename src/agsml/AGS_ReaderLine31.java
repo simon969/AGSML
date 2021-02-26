@@ -24,7 +24,16 @@ import org.w3c.dom.Node;
 class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
     
     protected final String HoleTableName = "**HOLE";
-    protected final String HoleIdFieldName = "*HOLEID"; 
+    protected final String HoleIdFieldName = "*HOLE_ID";
+    
+    protected final String GeolTableName = "**GEOL";
+    protected final String GeolDepthTOPFieldName = "*GEOL_TOP"; 
+    protected final String GeolDepthBASEFieldName = "*GEOL_BASE";
+    
+    protected final String keyDepthTOP = "_TOP";
+    protected final String keyDepthBASE = "_BASE";
+    protected final String keyDepthStrike = "_DEP";
+    
     protected final String const_strCRLFQ = "\r\"\n";
     protected final String const_strCRLF= "\r\n";
     protected final String keyTABLE = "**";
@@ -32,23 +41,37 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
     protected final String keyDELIMETER = ",";
     protected final String keyCONT = "<CONT>";
     protected final String keyUNITS = "<UNITS>";
-    
-    public String HoleTableName() {
-       return HoleTableName; 
-    };
-    public String HoleIdFieldName() {
-        return HoleIdFieldName;
-    };
-    
-    public int holecount() {
-    return rowcount(HoleTableName);
-    }
+    protected final String keyTYPE = "<TYPE>";
+      
+    public String HoleTableName() {return HoleTableName;}
+    public String HoleIdFieldName() {return HoleIdFieldName;}
+    public int holecount() {return rowcount(HoleTableName);}
+    public String GeolTableName() {return GeolTableName;}
+    public int geolcount(){return rowcount(GeolTableName);}
+    public String GeolDepthTOPFieldName(){return GeolDepthTOPFieldName;}
+    public String GeolDepthBASEFieldName(){return GeolDepthBASEFieldName;}
+    public int get_col_depthTOP() { return m_row.col_depthTOP;}
+    public int get_col_depthBASE(){ return m_row.col_depthBASE;}
+    public int get_col_HoleId(){ return m_row.col_holeid;}
+    public String getAGSVersion(){return "AGS3.1";}
     public int rowcount(String TableName) {
         int rowcount = 0; 
         AGS_ReaderLine.LineType result = FindTable (TableName);
+        
         if (result==AGS_ReaderLine.LineType.tableName) {
-            while (NextLine()==AGS_ReaderLine.LineType.rowData) {
-            rowcount =+ 1;
+            result = NextLine();
+            while (true) {
+            if (result == AGS_ReaderLine.LineType.tableName) {
+                break;
+            }
+            if (result == AGS_ReaderLine.LineType.EOF) {
+                break;
+            } 
+            if (result == AGS_ReaderLine.LineType.rowData) { 
+                rowcount++;
+            }
+    
+            result =  NextLine();
             }
         }
         return rowcount; 
@@ -57,21 +80,29 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
         AGS_ReaderLine31 lr1  =  new AGS_ReaderLine31(DataSource());
         return lr1;
     }
+    public AGS_ReaderLine31 Copy (String HoleId) {
+        AGS_ReaderLine31 lr2  =  new AGS_ReaderLine31(DataSource());
+        String hole_ags = lr2.getAllDataForHole(HoleId);
+        AGS_ReaderLine31 lr1  =  new AGS_ReaderLine31(hole_ags);
+        return lr1;
+    }
     public AGS_ReaderLine31 (BufferedReader br1) {
         super(br1);
     }
     public AGS_ReaderLine31(String fName){
         super(fName);
     }
-   
-    public AGS_ReaderLine.LineType NextTable(){
+   public int get_col (String s1) {
+    return m_row.FindColumn(s1);
+   }
+   public AGS_ReaderLine.LineType NextTable(){
         AGS_ReaderLine.LineType result;
         do {
-              result = ReadLine();
+              result = NextLine();
               if (result == AGS_ReaderLine.LineType.tableName) {
               return result;
             }
-        } while (result != AGS_ReaderLine.LineType.Error);
+        } while (result != AGS_ReaderLine.LineType.Error && result != AGS_ReaderLine.LineType.EOF);
         return result;
     }
     public AGS_ReaderLine.LineType FindTable(String s1){
@@ -82,6 +113,9 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
         String s2;
         do {
               result = NextTable();
+              if (result!=AGS_ReaderLine.LineType.tableName) {
+                 return result; 
+              }
               readTABLENAME();
               s2 = get_tablename(RemoveStars, RemoveQMarks, RemoveWhiteSpace,AllToLowerCase);
               if (s2 != null) {
@@ -89,7 +123,7 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
                          return result;
                   }
                 }
-        } while (result != AGS_ReaderLine.LineType.Error);
+        } while (result != AGS_ReaderLine.LineType.Error && result != AGS_ReaderLine.LineType.EOF);
         return result;
     }
 
@@ -112,20 +146,21 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
     public int line_counter(){
         return m_linecounter;
     }
-    public Collection<String> get_headers(){
-    return get_headers(false,false,false,false);
+    public List<String> get_headers(){
+    return get_headers(false,true,false,false);
     }
-    private Collection<String> get_headers(boolean RemoveStars, boolean RemoveQMarks,boolean RemoveWhiteSpace, boolean AllToLowerCase) {
-       return  FormatCollection(m_row.columnINCollection(), RemoveStars, RemoveQMarks, RemoveWhiteSpace, AllToLowerCase);
+    private List<String> get_headers(boolean RemoveStars, boolean RemoveQMarks,boolean RemoveWhiteSpace, boolean AllToLowerCase) {
+       return  FormatList(m_row.m_columnsIN, RemoveStars, RemoveQMarks, RemoveWhiteSpace, AllToLowerCase);
     }
-    public Collection<String> get_units(){
+      
+    public List<String> get_units(){
     return get_units(false,false,false,false);
     }
-    private Collection<String> get_units(boolean RemoveStars, boolean RemoveQMarks, boolean RemoveWhiteSpace, boolean AllToLowerCase){
-        return FormatCollection(m_row.unitsCollection(), RemoveStars, RemoveQMarks, RemoveWhiteSpace, AllToLowerCase);
+    private List<String> get_units(boolean RemoveStars, boolean RemoveQMarks, boolean RemoveWhiteSpace, boolean AllToLowerCase){
+        return FormatList(m_row.m_units, RemoveStars, RemoveQMarks, RemoveWhiteSpace, AllToLowerCase);
      }
-    public Collection<String> get_data(){
-      return m_row.dataCollection();
+    public List<String> get_data(){
+      return m_row.m_data;
     }
     public String get_tablename(){
         return get_tablename(false,false,false,false);
@@ -153,7 +188,8 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
         return sb.toString();
         
      }
-        private String RemoveQMarks(String s1){
+    
+       private String RemoveQMarks(String s1){
        char ch;
        StringBuilder sb;
        sb = new StringBuilder();
@@ -178,8 +214,7 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
             }
         return sb.toString();
     }
-      
-     private Collection<String> FormatCollection(Collection c, boolean RemoveStars, boolean RemoveQMarks, boolean RemoveWhiteSpace, boolean AllToLowerCase) {
+     private List<String> FormatList(List c, boolean RemoveStars, boolean RemoveQMarks, boolean RemoveWhiteSpace, boolean AllToLowerCase) {
       
         String s1;
         List<String> temp = new ArrayList<String>();
@@ -194,9 +229,8 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
                     temp.add(s1);
         }
         return temp;
-    }
-
-    public AGS_ReaderLine.LineType NextLine (){
+    } 
+    @Override public AGS_ReaderLine.LineType NextLine (){
          try {
                 AGS_ReaderLine.LineType retval = AGS_ReaderLine.LineType.Empty;
                 
@@ -213,29 +247,29 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
                 return retval;
          }
          catch (Exception e) {
-             m_log.log(Level.SEVERE, e.getMessage());
+             log.log(Level.SEVERE, e.getMessage());
             return AGS_ReaderLine.LineType.Error; 
          }
 } 
-    public AGS_ReaderLine.LineType ReadLine () {
+   @Override public AGS_ReaderLine.LineType ReadLine () {
         
         AGS_ReaderLine.LineType retval = AGS_ReaderLine.LineType.Empty;
 
         try {
+        
             retval = getLineType();
            
         if (retval.equals(AGS_ReaderLine.LineType.rowData)) {
             readDATA();
-            if (next_containsCONT()){
-                retval = ReadLine();
+            while (next_containsCONT()){
+                NextLine();
+                read_cont_data();
             }
         }      
         if (retval.equals(AGS_ReaderLine.LineType.tableHeader)) {
             readHEADER();
-            if (next_containsCONT()) {
-                retval = ReadLine();
-            }
         }
+        
         if (retval.equals(AGS_ReaderLine.LineType.tableName)) { 
             readTABLENAME();
         }
@@ -244,15 +278,12 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
         }
     //    if (retval == intCONT()) { retval = read_cont();}
         if (retval.equals(AGS_ReaderLine.LineType.rowCONT)) {
-            retval = read_cont();
-            if (next_containsCONT()) {
-                retval = ReadLine();
-            }
+        
         }
+        
         }  catch (Exception e) {
         // catch possible io errors from readLine()
-        System.out.println("Uh oh, got an IOException error!");
-        e.printStackTrace();
+        log.severe(e.getMessage());
         retval = AGS_ReaderLine.LineType.Error;
         }
 
@@ -264,10 +295,17 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
         if (containsHEADER()) {retval = AGS_ReaderLine.LineType.tableHeader;}
         if (containsTABLENAME()) {retval = AGS_ReaderLine.LineType.tableName;}
         if (containsUNITS()) {retval = AGS_ReaderLine.LineType.tableUnits;}
+        if (containsTYPE()) {retval = AGS_ReaderLine.LineType.tableType;}
         if (containsCONT()) {retval = AGS_ReaderLine.LineType.rowCONT;}
         return retval;
     }
-    
+    private boolean containsTYPE() {
+        if  (m_read_line == null) {
+            return false;
+        } else {
+        return m_read_line.contains(keyTYPE);
+        } 
+    }
     private boolean containsCONT() {
     if  (m_read_line == null) {
         return false;
@@ -334,7 +372,7 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
   
     private int readTABLENAME(){
         // initialise all table variables'
-          m_row = new Header();
+          m_row = new AGS_Header();
           int from_i = 0;
           int to_i = 0;
           do {
@@ -342,7 +380,7 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
                 m_substr = get_substring(from_i, to_i, const_strCRLFQ);
                 m_tablename = m_substr;
            } while (to_i < m_read_line.length());
-
+          m_row.m_tableIN = m_tablename;
           return m_tablename.length();
     }
     
@@ -439,20 +477,96 @@ class AGS_ReaderLine31  extends AGS_Base implements AGS_ReaderLine{
          }
     }
 
-   
+    private boolean isFieldHoleId(String s1) {
+        if (s1 == HoleIdFieldName) {
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isFieldDepthTOP(String s1) {
+
+        if (s1.equalsIgnoreCase("*" + m_tablename.substring(2)+ keyDepthTOP)) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("*" + m_tablename.substring(2)+ keyDepthStrike)) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("*SAMP_TOP")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("*" + m_tablename.substring(2)+ "_FROM")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("*" + m_tablename + "_DPTH")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("*MONP_DIS")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("*MONR_DIS")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("*INST_TDEP")) {
+             return true;
+        }  
+        if (s1.equalsIgnoreCase("*PREF_TDEP")) {
+             return true;
+        } 
+        if (s1.equalsIgnoreCase("*PROB_TDEP")) {
+             return true;
+        } 
+        if (s1.equalsIgnoreCase("*PROF_TRPS")) {
+             return true;
+        } 
+        return false;       
+    }
+    
+    private boolean isFieldDepthBASE(String s1) {
+        
+        if (s1.equalsIgnoreCase("*" + m_tablename.substring(2) + keyDepthBASE)) {
+             return true;
+        }
+     
+        if (s1.equalsIgnoreCase("*SAMP_BASE")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("*" + m_tablename.substring(2)+ "_TO")) {
+             return true;
+        }
+        
+        
+        
+        
+        
+        
+        return false;  
+    }
+    
     private int readHEADER() {
           int from_i = 0;
           int to_i = 0;
-          
+          int count = 0;
           SQL_Base.SQLDataType def_datatype = SQL_Base.SQLDataType.NVARCHAR;
         
           do {
                 to_i = find_next(from_i, ",", true, true);
                 m_substr = get_substring(from_i, to_i, const_strCRLFQ);
                 if (m_substr.length()> 0) {
-                m_row.AddColumn(m_substr, def_datatype.getValue());
+                    m_row.AddColumn(m_substr, def_datatype.getValue());
+                    if (isFieldHoleId(m_substr)) {
+                       m_row.setHoleId_fieldName(m_substr, count);
+                    }
+                    if (isFieldDepthBASE(m_substr)) {
+                       m_row.setDepthBASE_fieldName(m_substr, count);
+                    }
+                    if (isFieldDepthTOP(m_substr)) {
+                       m_row.setDepthTOP_fieldName(m_substr, count);
+                    }
+                 count = count + 1;
                 }
-                from_i = to_i + 1;
+            from_i = to_i + 1;
+                
            } while (to_i < m_read_line.length());
 
           return m_row.columnIN().size();

@@ -34,31 +34,7 @@ class SQL_KML_Writer extends  SQL_XML_Writer {
     protected SQL_Base m_db;
     
    
-    protected final String SQLXML_KMLEASTING_TAG = "kmlEasting";
-    protected final String SQLXML_KMLNORTHING_TAG = "kmlNorthing";
-    protected final String SQLXML_KMLLATITUDE_TAG = "kmlLatitude";
-    protected final String SQLXML_KMLLONGITUDE_TAG = "kmlLongitude";
-    protected final String SQLXML_KMLDIAMETER_TAG = "kmlDiameter";
-    protected final String SQLXML_KMLRADIUS_TAG = "kmlRadius";  
-    protected final String SQLXML_KMLNAME_TAG = "kmlName";
-    protected final String SQLXML_KMLNAMESPACE = "http://earth.google.com/kml/2.2";
-    protected final String SQLXML_KMLEXTENDEDDATA ="kmlExtendedData";
-    protected final String SQLXML_KMLDESCRIPTION_TAG ="kmlDescription";
-    protected final String SQLXML_KMLGEOMETRYTYPE_TAG = "kmlGeometryType";
-    
-    protected enum SQLXML_KMLInputCoordType {
-        kmlNone,
-        kmlOSNationalGrid,
-        kmlLongitudeLatitude;
-    }
 
-    protected enum SQLXML_KMLGeometryType {
-        kmlNone,
-        kmlPoint,
-        kmlLineString,
-        kmlPolygon,
-        kmlCircle
-    }
     
     public SQL_KML_Writer() {
     super();
@@ -130,7 +106,7 @@ class SQL_KML_Writer extends  SQL_XML_Writer {
             
             setOutputFile(folderOut() + "\\" + holename + ".xml");
             
-            openFile(true);
+            openFile(true, false);
             
             Process (n1, null);
             
@@ -147,7 +123,7 @@ class SQL_KML_Writer extends  SQL_XML_Writer {
   }
  
  catch (SQLException e) {
-     m_log.log(Level.SEVERE, e.getMessage());
+     log.log(Level.SEVERE, e.getMessage());
  }   
 }
 protected Node Process(Node n1, String hole_id){
@@ -166,7 +142,7 @@ protected Node Process(Node n1, String hole_id){
                 
                 IsAGSMLTable = IsAGSTable(s1);
                 
-                m_log.log(Level.INFO ,"["+ hole_id + "][" + n1.getNodeName() +"]") ;
+                log.log(Level.INFO ,"["+ hole_id + "][" + n1.getNodeName() +"]") ;
                 
                 if (IsAGSMLTable == false) {
                     openNode (s1);
@@ -214,7 +190,7 @@ protected Node Process(Node n1, String hole_id){
     return n1;
    
  } catch (Exception e) {
-     m_log.log(Level.SEVERE, e.getMessage());
+     log.log(Level.SEVERE, e.getMessage());
      return n1;
  }
 }
@@ -252,7 +228,7 @@ protected Node Process(Node n1, String hole_id){
     if (m_db.find_tablename(sql_tname) >= 1) {
     
         ResultSet rs = m_db.get_table(sql_tname, sql_fname, fvalue );
-        Header r =  convertSQLHeader(rs, sql_tname, AGS_Dictionary.Lang.GINT); 
+        Header r =  convertSQLHeader(rs, sql_tname, agsml.Constants.Lang.GINT); 
         
         if (rs !=null) {
             if (rs.first()) {
@@ -272,7 +248,7 @@ protected Node Process(Node n1, String hole_id){
     }
     
     if (row_count > 0) {
-    m_log.log(Level.INFO,"["+ fvalue + "]["+ xml_tname+ "][" + String.valueOf(row_count) +"]") ;
+    log.log(Level.INFO,"["+ fvalue + "]["+ xml_tname+ "][" + String.valueOf(row_count) +"]") ;
     }
     
    
@@ -282,7 +258,7 @@ protected Node Process(Node n1, String hole_id){
  }
  
  catch (SQLException e) {
-    m_log.log(Level.SEVERE, e.getMessage());
+    log.log(Level.SEVERE, e.getMessage());
      return -1;
  }
  }
@@ -325,9 +301,9 @@ protected Node Process(Node n1, String hole_id){
                     openNode(h1);
                         addValid (d1);
                     closeNode();
-                    if (h1.equals(OutputFileNameFromField()) && SQLXML_ADDHOLEFILENAME == true) {
+                    if (h1.equals(OutputFileNameFromField()) && agsml.Constants.SQLXML_ADDHOLEFILENAME == true) {
                          String holefileName = removeSpecialCharacters(d1) + ".xml";
-                         openNode (SQLXML_HOLEFILETAGNAME);
+                         openNode (agsml.Constants.SQLXML_HOLEFILETAGNAME);
                          addValid (holefileName);
                          closeNode();
                     }
@@ -367,7 +343,7 @@ protected int addHoles(Node n1) {
     }
 
     ResultSet  rs = m_db.get_table(m_db.AGSSQL_PointTableName);
-    Header r = convertSQLHeader (rs,m_db.AGSSQL_PointTableName, AGS_Dictionary.Lang.GINT );
+    Header r = convertSQLHeader (rs,m_db.AGSSQL_PointTableName, agsml.Constants.Lang.GINT );
     
     if (n1.hasChildNodes() == true)  { 
         NodeList list = n1.getChildNodes();
@@ -388,7 +364,7 @@ protected int addHoles(Node n1) {
                            Process (n2, hole_id);
                         }
                     closeNode();
-                m_log.info("Found " + hole_id + " in list ");
+                log.info("Found " + hole_id + " in list ");
               }
            } while (rs.next());
     }
@@ -399,60 +375,60 @@ return count;
 }
 
 catch (SQLException e) {
-   m_log.log(Level.SEVERE, e.getMessage()); 
+   log.log(Level.SEVERE, e.getMessage()); 
    return -1;    
 }
 }
 
   protected String getKMLDescriptionField(Node n1) {
-    return getSubNodeValue(n1,SQLXML_KMLDESCRIPTION_TAG);
+    return getSubNodeValue(n1,agsml.Constants.SQLXML_KMLDESCRIPTION_TAG);
 } 
   protected String getKMLDiameterField(Node n1) {
-    return getSubNodeValue(n1,SQLXML_KMLDIAMETER_TAG);
+    return getSubNodeValue(n1,agsml.Constants.SQLXML_KMLDIAMETER_TAG);
 }
   protected String getKMLRadiusField(Node n1) {
-    return getSubNodeValue(n1,SQLXML_KMLRADIUS_TAG);
+    return getSubNodeValue(n1,agsml.Constants.SQLXML_KMLRADIUS_TAG);
 }
   protected String getKMLNameField(Node n1) {
-    return getSubNodeValue(n1,SQLXML_KMLNAME_TAG);
+    return getSubNodeValue(n1,agsml.Constants.SQLXML_KMLNAME_TAG);
 }
   protected String getKMLLongitudeField(Node n1) {
-    return getSubNodeValue(n1,SQLXML_KMLLONGITUDE_TAG);
+    return getSubNodeValue(n1,agsml.Constants.SQLXML_KMLLONGITUDE_TAG);
 }   
 protected String getKMLLatitudeField(Node n1) {
-    return getSubNodeValue(n1,SQLXML_KMLLATITUDE_TAG);
+    return getSubNodeValue(n1,agsml.Constants.SQLXML_KMLLATITUDE_TAG);
 }     
   protected String getKMLEastingField(Node n1) {
-    return getSubNodeValue(n1,SQLXML_KMLEASTING_TAG);
+    return getSubNodeValue(n1,agsml.Constants.SQLXML_KMLEASTING_TAG);
 }   
 protected String getKMLNorthingField(Node n1) {
-    return getSubNodeValue(n1,SQLXML_KMLNORTHING_TAG);
+    return getSubNodeValue(n1,agsml.Constants.SQLXML_KMLNORTHING_TAG);
 } 
-protected SQLXML_KMLGeometryType getKMLGeometryType(Node n1) {
-    String s1 = getSubNodeValue(n1,SQLXML_KMLGEOMETRYTYPE_TAG);
+protected agsml.Constants.SQLXML_KMLGeometryType getKMLGeometryType(Node n1) {
+    String s1 = getSubNodeValue(n1,agsml.Constants.SQLXML_KMLGEOMETRYTYPE_TAG);
     
     if (s1.length()==0 || s1.equalsIgnoreCase("Point")) {
-        return SQLXML_KMLGeometryType.kmlPoint;
+        return agsml.Constants.SQLXML_KMLGeometryType.kmlPoint;
     }
     if (s1.equalsIgnoreCase("LineString")) {
-        return SQLXML_KMLGeometryType.kmlPoint;
+        return agsml.Constants.SQLXML_KMLGeometryType.kmlPoint;
     }
     if (s1.equalsIgnoreCase("Circle")) {
-        return SQLXML_KMLGeometryType.kmlCircle;
+        return agsml.Constants.SQLXML_KMLGeometryType.kmlCircle;
     }
-    return SQLXML_KMLGeometryType.kmlPoint;
+    return agsml.Constants.SQLXML_KMLGeometryType.kmlPoint;
 }  
 
 protected String getDictionaryTable(Node n1) {
-    return getSubNodeValue(n1, SQLXML_DICTIONARY_TABLE);
+    return getSubNodeValue(n1, agsml.Constants.SQLXML_DICTIONARY_TABLE);
 }
 protected String getOutputTableName(Node n1) {
-    return getSubNodeValue(n1,SQLXML_TABLE_TAG);
+    return getSubNodeValue(n1,agsml.Constants.SQLXML_TABLE_TAG);
 }
 protected String getOutputRowName(Node n1) {
-    String s1 = getSubNodeValue(n1,SQLXML_ROW_TAG);
+    String s1 = getSubNodeValue(n1,agsml.Constants.SQLXML_ROW_TAG);
     if (s1.isEmpty()) {
-               s1 = getAttributeValue(n1, SQLXML_ROW_TAG);
+               s1 = getAttributeValue(n1, agsml.Constants.SQLXML_ROW_TAG);
     }
     if (s1.isEmpty()) {
         s1 = "row";
@@ -460,9 +436,9 @@ protected String getOutputRowName(Node n1) {
     return s1;
 }
 protected String getOutputTableID(Node n1) {
-    String s1 = getAttributeValue(n1,SQLXML_TABLE_ID);
+    String s1 = getAttributeValue(n1,agsml.Constants.SQLXML_TABLE_ID);
     if (s1.isEmpty()) {
-        s1 = getSubNodeValue(n1,SQLXML_TABLE_ID); 
+        s1 = getSubNodeValue(n1,agsml.Constants.SQLXML_TABLE_ID); 
         } 
     if (s1.isEmpty()) {
         s1 = getAttributeValue(n1,"id"); 
@@ -470,16 +446,16 @@ protected String getOutputTableID(Node n1) {
     return s1;
 }
 protected String getSelect(Node n1) {
-     return getSubNodeValue(n1,SQLXML_SELECT);
+     return getSubNodeValue(n1,agsml.Constants.SQLXML_SELECT);
 }
 protected String getFrom(Node n1) {
-     return getSubNodeValue(n1,SQLXML_FROM);
+     return getSubNodeValue(n1,agsml.Constants.SQLXML_FROM);
 }
 protected String getWhere(Node n1) {
-     return getSubNodeValue(n1,SQLXML_WHERE);
+     return getSubNodeValue(n1,agsml.Constants.SQLXML_WHERE);
 }
 protected String getExplicitQuery(Node n1) {
-     return getSubNodeValue(n1,SQLXML_QUERY);
+     return getSubNodeValue(n1,agsml.Constants.SQLXML_QUERY);
 }
 protected String getQuery (Node n1) {
 try {
@@ -493,22 +469,22 @@ try {
     String query1 =  n1.getTextContent();
     
 if (select.isEmpty()!=true) {
-    sb1.append(SQLXML_SELECT);
-        sb1.append(SQLXML_SINGLESPACE);
+    sb1.append(agsml.Constants.SQLXML_SELECT);
+        sb1.append(agsml.Constants.SQLXML_SINGLESPACE);
             sb1.append(select);
-                sb1.append(SQLXML_SINGLESPACE);
-    sb1.append(SQLXML_FROM);
-    sb1.append(SQLXML_SINGLESPACE);
+                sb1.append(agsml.Constants.SQLXML_SINGLESPACE);
+    sb1.append(agsml.Constants.SQLXML_FROM);
+    sb1.append(agsml.Constants.SQLXML_SINGLESPACE);
         sb1.append(from);
         
     if (!where.isEmpty()) {       
-            sb1.append(SQLXML_SINGLESPACE);
-    sb1.append(SQLXML_WHERE);
-        sb1.append(SQLXML_SINGLESPACE);
+            sb1.append(agsml.Constants.SQLXML_SINGLESPACE);
+    sb1.append(agsml.Constants.SQLXML_WHERE);
+        sb1.append(agsml.Constants.SQLXML_SINGLESPACE);
             sb1.append(where);
-                sb1.append(SQLXML_END); 
+                sb1.append(agsml.Constants.SQLXML_END); 
     } else {
-        sb1.append(SQLXML_END); 
+        sb1.append(agsml.Constants.SQLXML_END); 
     }
 return sb1.toString();
 }
@@ -525,7 +501,7 @@ if (query.isEmpty()) {
   }
 } 
 catch (Exception e) {
-    m_log.log(Level.SEVERE,e.getMessage());
+    log.log(Level.SEVERE,e.getMessage());
   return null;  
 }    
 }
@@ -674,17 +650,17 @@ public int processKMLNode( Node n1) {
         ScaleFactor = 0.5;
         }
         
-        SQLXML_KMLInputCoordType coordType;
+        agsml.Constants.SQLXML_KMLInputCoordType coordType;
         
         if (fEasting.isEmpty() && fNorthing.isEmpty()) {
-         coordType= SQLXML_KMLInputCoordType.kmlLongitudeLatitude;
+         coordType= agsml.Constants.SQLXML_KMLInputCoordType.kmlLongitudeLatitude;
         } else {
-        coordType= SQLXML_KMLInputCoordType.kmlOSNationalGrid;
+        coordType= agsml.Constants.SQLXML_KMLInputCoordType.kmlOSNationalGrid;
         }
         
         String fName = getKMLNameField(n1);
         String fDescription = getKMLDescriptionField(n1);
-        SQLXML_KMLGeometryType geometryType = getKMLGeometryType(n1);
+        agsml.Constants.SQLXML_KMLGeometryType geometryType = getKMLGeometryType(n1);
         
         String coordinate = "";
         String name = "";
@@ -695,7 +671,7 @@ public int processKMLNode( Node n1) {
         ResultSet rs = m_db.get_query(query);
         
         if (rs !=null) {
-            addNodeAttrib("xmlns",this.SQLXML_KMLNAMESPACE);
+            addNodeAttrib("xmlns",agsml.Constants.SQLXML_KMLNAMESPACE);
             openNode ("kml");
                 openNode ("Document");
                     openNode ("name");
@@ -722,13 +698,13 @@ public int processKMLNode( Node n1) {
                                     addKMLExtendedData (rs, nodeExtendedData);
                                    
                                     
-                                    if (geometryType == SQLXML_KMLGeometryType.kmlPoint) {
+                                    if (geometryType == agsml.Constants.SQLXML_KMLGeometryType.kmlPoint) {
                                             
-                                            if (coordType == SQLXML_KMLInputCoordType.kmlLongitudeLatitude) {
+                                            if (coordType == agsml.Constants.SQLXML_KMLInputCoordType.kmlLongitudeLatitude) {
                                             coordinate = getCoordinatePair(rs, fLatitude, fLongitude );
                                             }
                                             
-                                            if (coordType == SQLXML_KMLInputCoordType.kmlOSNationalGrid) {
+                                            if (coordType == agsml.Constants.SQLXML_KMLInputCoordType.kmlOSNationalGrid) {
                                             coordinate = getCoordinateConvertPair(rs, fEasting,fNorthing);
                                             }
                                                 openNode ("Point");
@@ -739,13 +715,13 @@ public int processKMLNode( Node n1) {
                                              row_count++;
                                     }
                                     
-                                    if (geometryType == SQLXML_KMLGeometryType.kmlCircle) {
+                                    if (geometryType == agsml.Constants.SQLXML_KMLGeometryType.kmlCircle) {
                                             
-                                            if (coordType == SQLXML_KMLInputCoordType.kmlLongitudeLatitude) {
+                                            if (coordType == agsml.Constants.SQLXML_KMLInputCoordType.kmlLongitudeLatitude) {
                                             coordinate = getCircleCoordinates(rs, fLatitude,fLongitude,  fRadius, ScaleFactor);
                                             }
                                             
-                                            if (coordType == SQLXML_KMLInputCoordType.kmlOSNationalGrid) {
+                                            if (coordType == agsml.Constants.SQLXML_KMLInputCoordType.kmlOSNationalGrid) {
                                             coordinate = getCircleConvertCoordinates(rs, fEasting, fNorthing, fRadius, ScaleFactor);
                                             }
                                             openNode("Polygon");
@@ -764,11 +740,11 @@ public int processKMLNode( Node n1) {
                                     
                                     
                                     
-                                    if (geometryType == SQLXML_KMLGeometryType.kmlLineString) {
-                                            if (coordType == SQLXML_KMLInputCoordType.kmlLongitudeLatitude) {
+                                    if (geometryType == agsml.Constants.SQLXML_KMLGeometryType.kmlLineString) {
+                                            if (coordType == agsml.Constants.SQLXML_KMLInputCoordType.kmlLongitudeLatitude) {
                                             coordinate = getCoordinates(rs, fLongitude, fLatitude);
                                             }
-                                            if (coordType == SQLXML_KMLInputCoordType.kmlOSNationalGrid) {
+                                            if (coordType == agsml.Constants.SQLXML_KMLInputCoordType.kmlOSNationalGrid) {
                                             coordinate = getCoordinatesConvert(rs, fNorthing, fEasting);
                                             }
                                             rs.afterLast();
@@ -788,11 +764,11 @@ public int processKMLNode( Node n1) {
         rs.close();
         }
         
-        m_log.log(Level.INFO,"KMLNode Processed " + row_count + "rows added");
+        log.log(Level.INFO,"KMLNode Processed " + row_count + "rows added");
         return row_count;
          
      } catch (Exception e) {
-        m_log.log(Level.SEVERE,e.getMessage());
+        log.log(Level.SEVERE,e.getMessage());
       return -1;
     }
     
@@ -848,12 +824,12 @@ try {
         closeNode();
     }   
  }   catch (Exception e) {
-      m_log.log(Level.SEVERE,e.getMessage());
+      log.log(Level.SEVERE,e.getMessage());
       return ;
  }
 }
 private Node getKMLExtendedData(Node n1) {
-    return getSubNode(n1,SQLXML_KMLEXTENDEDDATA);
+    return getSubNode(n1,agsml.Constants.SQLXML_KMLEXTENDEDDATA);
 }
 public int processQueryNode(Node n1) {
     try {
@@ -870,7 +846,7 @@ public int processQueryNode(Node n1) {
         
         if (rs !=null) {
        
-        Header h = convertXMLHeader(rs, dict_table, AGS_Dictionary.Lang.GINT);
+        Header h = convertXMLHeader(rs, dict_table, agsml.Constants.Lang.GINT);
               
             if (rs.first()) {
                    do {
@@ -887,7 +863,7 @@ public int processQueryNode(Node n1) {
         return row_count;
 
     } catch (Exception e) {
-        m_log.log(Level.SEVERE,e.getMessage());
+        log.log(Level.SEVERE,e.getMessage());
       return -1;
     }
 }

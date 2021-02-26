@@ -5,33 +5,85 @@
 package agsml;
 
 import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import javax.swing.JTextArea;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.NamedNodeMap;
+import static agsml.Base_Class.log;
 
 /**
  *
  * @author thomsonsj
  */
-public class AGS_Converter extends Base_Class {
-    private TextAreaHandler textAreaHandler;
-     
+public class AGS_Converter extends Thread {
+   //private TextAreaHandler mTextAreaHandler;
+   private Logger log;
+   private PropertyBag m_pb;
+   
+   public enum AGS_DataSourceType {
+       None, AGS, SQLServer, AccessDb
+   }  
+//   static {
+//       
+//        log = Logger.getLogger("agsmlConverter" );
+//        log.setUseParentHandlers(false);
+//        
+//        ConsoleHandler handler = new ConsoleHandler();
+//        handler.setFormatter(new SimpleFormatter() {
+//        private static final String format = "[%1$tF %1$tT] [%2$-7s] %3$s %n";
+//
+//        @Override
+//        public synchronized String format(LogRecord lr) {
+//              return String.format(format,
+//                      new Date(lr.getMillis()),
+//                      lr.getLevel().getLocalizedName(),
+//                      lr.getMessage()
+//              );
+//          }
+//      });
+//     
+//     log.addHandler(handler); 
+//         
+//    }
+   
    public AGS_Converter(){
-    TextAreaHandler textAreaHandler = new TextAreaHandler();   
-    m_log.addHandler(textAreaHandler);
-   }
-   public void set_LoggerTextArea(JTextArea textArea, Level level) {
-       textAreaHandler.textArea = textArea;
-       textAreaHandler.setLevel(level);
+ //   mTextAreaHandler = new TextAreaHandler(); 
+ //   mTextAreaHandler.setFormatter(new SimpleFormatter() {
+ //       private static final String format = "[%1$tF %1$tT] [%2$-7s] %3$s %n";
+ //       @Override
+ //       public synchronized String format(LogRecord lr) {
+ //             return String.format(format,
+  //                    new Date(lr.getMillis()),
+ //                     lr.getLevel().getLocalizedName(),
+ //                     lr.getMessage()
+ //             );
+ //         }
+ //       }
+ //       );
+ //   log = Logger.getLogger("AGS_Converter");
+ //   log.addHandler(mTextAreaHandler);
+    m_pb = new PropertyBag();
    }
    
-   public static AGS_Dictionary.AGSVersion getAGSVersion(String ags_file) {
+ //  public void set_LoggerTextArea(JTextArea textArea, Level level) {
+ //      mTextAreaHandler.textArea = textArea;
+ //      mTextAreaHandler.setLevel(level);
+ //  }
+ 
+   public void setLogger(Logger Log) {
+       log = Log;
+    }
+   public static agsml.Constants.AGSVersion getAGSVersion(String ags_file) {
        AGS_ReaderText art = new AGS_ReaderText (ags_file);
        return art.AGSVersion();
    }
@@ -183,114 +235,102 @@ public class AGS_Converter extends Base_Class {
    }
   
 
-  public void AGS_to_AGSML(String ags_file, String xml_file, String xml_dictionary){
-        AGS_to_AGSML(ags_file, xml_file, xml_dictionary,"","","");
+  public void AGS_to_AGSML(String ags_file, String xml_filefolder, String xml_dictionary){
+        AGS_to_AGSML(ags_file, xml_filefolder, xml_dictionary,Constants.AGS_DATASTRUCTURESERIESID_DEFAULT,"");
     } 
-   public void AGS_to_AGSML(String ags_file, String xml_folder, String xml_dictionary, String xml_hole_file) {
-        AGS_to_AGSML (ags_file, xml_folder,xml_dictionary, "", "", xml_hole_file);
- }
   
-  public void AGS_to_AGSML(String ags_file, String xml_filefolder, String xml_dictionary, String AGSDictionaryId, String AGSMLDataStructureId) {
-        AGS_to_AGSML (ags_file, xml_filefolder, xml_dictionary, AGSDictionaryId, AGSMLDataStructureId, "");
+  public void AGS_to_AGSML(String ags_file, String xml_filefolder, String xml_dictionary, String AGSMLDataStructureSeriesId) {
+        AGS_to_AGSML (ags_file, xml_filefolder, xml_dictionary, AGSMLDataStructureSeriesId, "");
     }      
  
-  public void AGS_to_AGSML(String ags_file, String xml_filefolder, String xml_dictionary, String AGSDictionaryId, String AGSMLDataStructureId,String xml_hole_file) {
+   public boolean AGS_to_AGSML(String ags_file, String xml_filefolder, String xml_dictionary, String AGSMLDataStructureSeriesId, String xml_hole_file) {
    
-      try {   
+      try {    
+           
+           AGS_XML_Writer axw = new AGS_XML_Writer();
+           axw.setLogger(log);
            if (!xml_filefolder.isEmpty()) {
-               
-                AGS_XML_Writer axw = new AGS_XML_Writer();
-                             
-                axw.setAGSDataSource(ags_file);
                 axw.setOutputFileFolder(xml_filefolder);
-                
                  if (!ags_file.isEmpty()) {
-                    if (!xml_dictionary.isEmpty()) {
-                        if (AGSDictionaryId.isEmpty()) {
-                            AGSDictionaryId = "Default";
-                        }
-                        axw.setAGSDictionary(xml_dictionary,AGSDictionaryId);
+                    axw.setAGSDataSource(ags_file);  
+                      if (!xml_dictionary.isEmpty()) {
+                        Constants.AGSVersion agsversion = getAGSVersion(ags_file);
+                        axw.setAGSDictionary(xml_dictionary,agsversion.toId());
                         axw.getAGSDictionary();
-
-                        if (AGSMLDataStructureId.isEmpty()) {
-                            AGSMLDataStructureId = "Project"; 
-                        }
-                        axw.setAGSDataStructure(xml_dictionary, AGSMLDataStructureId); 
+                        
+                        axw.setAGSDataStructureSeries(xml_dictionary, AGSMLDataStructureSeriesId); 
                         axw.getAGSDataStructure();
-
                         if (!xml_hole_file.isEmpty()) {
-                        /* open hole section file and find holes node */
-                        XML_DOM holes = new XML_DOM (xml_hole_file);
-                        NodeList nl1 = holes.doc().getElementsByTagName("HoleId");
-                        axw.setHoleList(nl1);
+                            /* open hole section file and find holes node */
+                            XML_DOM holes = new XML_DOM (xml_hole_file);
+                            NodeList nl1 = holes.doc().getElementsByTagName(Constants.AGS_HOLEID);
+                            axw.setHoleList(nl1);
                         }
                         
                     axw.getAGSReader();
                     axw.Process();
-                    axw.closeFile(); 
+                  //  axw.closeFile();
+                    return true;
                     }
                 }
             }
+        return false;
         }
        
         catch (Exception e) {
-          m_log.log(Level.SEVERE, e.getMessage());       
+          log.log(Level.SEVERE, e.getMessage()); 
+          return false;
                
         }
  }  
 
  public void SQL_to_AGSML(String source, String xml_outputfolder, String xml_dictionary) {
-   SQL_to_AGSML (source, xml_outputfolder, xml_dictionary,"","","") ;  
+   SQL_to_AGSML (source, xml_outputfolder, xml_dictionary,"","") ;  
  } 
   
- public void SQL_to_AGSML(String source, String xml_outputfolder, String xml_dictionary,String xml_hole_file) {
-   SQL_to_AGSML (source, xml_outputfolder, xml_dictionary,"","",xml_hole_file) ;  
+ public void SQL_to_AGSML(String source, String xml_outputfolder, String xml_dictionary, String AGSMLDataStructureSeriesId) {
+   SQL_to_AGSML (source, xml_outputfolder, xml_dictionary, AGSMLDataStructureSeriesId,"");  
  }
- public void SQL_to_AGSML(String source, String xml_outputfolder, String xml_dictionary, String AGSDictionaryId, String AGSMLDataStructureId) {
-   SQL_to_AGSML (source, xml_outputfolder, xml_dictionary,AGSDictionaryId,AGSMLDataStructureId,"");  
- }
-  public void SQL_to_AGSML(String source, String xml_outputfilefolder, String xml_dictionary, String AGSDictionaryId, String AGSMLDataStructureId, String xml_hole_file) {
+  public boolean SQL_to_AGSML(String dbsource, String xml_filefolder, String xml_dictionary, String AGSMLDataStructureSeriesId, String xml_hole_file) {
    
       try {   
-            if (!source.isEmpty() && !xml_outputfilefolder.isEmpty() && !xml_dictionary.isEmpty()) {  
-                
-                 SQL_XML_Writer sxw = new SQL_XML_Writer();
-                               
-                    if (AGSDictionaryId.isEmpty()) {
-                        AGSDictionaryId="Default";
-                    }
-        
-                    if (AGSMLDataStructureId.isEmpty()) {
-                        AGSMLDataStructureId ="Project" ;
-                    }
-       
-                sxw.setAGSDictionary(xml_dictionary, AGSDictionaryId);
-                sxw.getAGSDictionary();
-                
-                sxw.setAGSDataStructure(xml_dictionary,AGSMLDataStructureId); 
-                sxw.getAGSDataStructure();
-                
-                sxw.setOutputFileFolder(xml_outputfilefolder);
-                
-                sxw.setAGSDataSource(source);
-                
-                    if (!xml_hole_file.isEmpty()) {
-                             /* open hole section file and find holes node */
-                        XML_DOM holes = new XML_DOM (xml_hole_file);
-                        NodeList nl1 = holes.doc().getElementsByTagName("HoleId");
-                        sxw.setHoleList(nl1);
-                    } 
-            
-            sxw.getAGSReader();     
-            sxw.Process();
-            sxw.closeFile();
-            }
-       }  
-   
+                              
+                SQL_XML_Writer sxw = new SQL_XML_Writer();
+                sxw.setLogger(log);
+                 if (!xml_filefolder.isEmpty()) {
+                    sxw.setOutputFileFolder(xml_filefolder);
+                        if (!dbsource.isEmpty()) {
+                            sxw.setAGSDataSource(dbsource);  
+                            sxw.getAGSReader();  
+                            Constants.AGSVersion agsversion = sxw.findAGSVersion();
+                            if (!xml_dictionary.isEmpty()) {
+                                sxw.setAGSDictionary(xml_dictionary,agsversion.toId());
+                                sxw.getAGSDictionary();
+                                    if (AGSMLDataStructureSeriesId.isEmpty()) {
+                                        AGSMLDataStructureSeriesId = "Project"; 
+                                    }
+                                    sxw.setAGSDataStructureSeries(xml_dictionary, AGSMLDataStructureSeriesId); 
+                                    sxw.getAGSDataStructure();
+
+                                   if (!xml_hole_file.isEmpty()) {
+                                      /* open hole section file and find holes node */
+                                       XML_DOM holes = new XML_DOM (xml_hole_file);
+                                       NodeList nl1 = holes.doc().getElementsByTagName("HoleId");
+                                       sxw.setHoleList(nl1);
+                                   } 
+                                  
+                            sxw.Process();
+                            sxw.closeFile();
+                            return true;
+                            }  
+                        }
+                 }
+                 return false;
+      }         
         
     catch (Exception e) {
-           m_log.log(Level.SEVERE, e.getMessage());            
-               
+           log.log(Level.SEVERE, e.getMessage());            
+           return false;    
    }  
   }
   
@@ -301,7 +341,7 @@ public class AGS_Converter extends Base_Class {
             if (DataStructure.getNodeName().equalsIgnoreCase(Base_Writer.AGS_DATASTRUCTURE)) {
                 
                 AGS_XML_Writer axw = new AGS_XML_Writer (); 
-                       
+                axw.setLogger(log);
                 // Copy properties from Datastructure node to AGS_XML_Writer'
                 NamedNodeMap nodeAttribs = DataStructure.getAttributes();
                 axw.setProperties (nodeAttribs); 
@@ -310,13 +350,13 @@ public class AGS_Converter extends Base_Class {
                 axw.getAGSDataStructure();
                 axw.getAGSReader();
                 axw.Process();
-                m_log.log(Level.SEVERE, DataStructure.getLocalName() + "Processed");
+                log.log(Level.SEVERE, DataStructure.getLocalName() + "Processed");
             }
                               
                                
         }
         catch (Exception e) {
-           m_log.log(Level.SEVERE, e.getMessage());            
+           log.log(Level.SEVERE, e.getMessage());            
                
    }
   }
@@ -324,7 +364,7 @@ public class AGS_Converter extends Base_Class {
    try {   
                 String s1 = "";
                 AGS_XML_Writer axw = new AGS_XML_Writer();
-                axw.setLogger(m_log);
+                axw.setLogger(log);
                 
                if (!ags_data.isEmpty()) {
                     axw.setAGSDataSource(ags_data);
@@ -334,21 +374,22 @@ public class AGS_Converter extends Base_Class {
                     axw.getAGSReader();
                     axw.Process();
                     s1 = axw.toString();
-                    axw.closeFile(); 
                     }
         return s1;
         }
        
         catch (Exception e) {
-          m_log.log(Level.SEVERE, e.getMessage());       
+          log.log(Level.SEVERE, e.getMessage());       
           return null;     
         } 
- }    
+ }  
+
+
  public void setProperties(Node node) {
     try {
         
         Element e1 = (Element) node;
-        setProperties(e1.getAttributes());
+        m_pb.setProperties(e1.getAttributes());
         
         NodeList nodeList = node.getChildNodes();
             
@@ -359,63 +400,129 @@ public class AGS_Converter extends Base_Class {
                          String nodeValue = n1.getTextContent();
 
                          e1 = (Element) n1;
-                        setProperties(e1.getAttributes());
+                        m_pb.setProperties(e1.getAttributes());
                          
                          if (nodeName.equals(Base_Writer.AGS_DATASOURCE)) {
-                             setProperty (Base_Writer.AGS_DATASOURCE,nodeValue);
+                             m_pb.setProperty (Base_Writer.AGS_DATASOURCE,nodeValue);
                          }
                          if (nodeName.equals(Base_Writer.AGS_DATASTRUCTUREFILENAME)) {
-                             setProperty (Base_Writer.AGS_DATASTRUCTUREFILENAME,nodeValue);
+                             m_pb.setProperty (Base_Writer.AGS_DATASTRUCTUREFILENAME,nodeValue);
                          }
                          if (nodeName.equals(Base_Writer.AGS_DATASTRUCTUREID)) {
-                             setProperty (Base_Writer.AGS_DATASTRUCTUREID,nodeValue);
+                             m_pb.setProperty (Base_Writer.AGS_DATASTRUCTUREID,nodeValue);
+                         }
+                         if (nodeName.equals(Base_Writer.AGS_DATASTRUCTURESERIESID)) {
+                             m_pb.setProperty (Base_Writer.AGS_DATASTRUCTURESERIESID,nodeValue);
                          }
                          if (nodeName.equals(Base_Writer.AGS_DICTIONARYFILENAME)) {
-                             setProperty (Base_Writer.AGS_DICTIONARYFILENAME,nodeValue);
+                             m_pb.setProperty (Base_Writer.AGS_DICTIONARYFILENAME,nodeValue);
                          }
                          if (nodeName.equals(Base_Writer.AGS_DICTIONARYID)) {
-                             setProperty (Base_Writer.AGS_DICTIONARYID,nodeValue);
+                             m_pb.setProperty (Base_Writer.AGS_DICTIONARYID,nodeValue);
                          }
                          if (nodeName.equals(Base_Writer.AGS_OUTPUTFIELD)) {
-                             setProperty (Base_Writer.AGS_DATASTRUCTURE,nodeValue);
+                             m_pb.setProperty (Base_Writer.AGS_DATASTRUCTURE,nodeValue);
                          }
                          if (nodeName.equals(Base_Writer.AGS_OUTPUTFILE)) {
-                             setProperty (Base_Writer.AGS_OUTPUTFILE,nodeValue);
+                             m_pb.setProperty (Base_Writer.AGS_OUTPUTFILE,nodeValue);
                          }
                          if (nodeName.equals(Base_Writer.AGS_OUTPUTFILEBASEDONFIELD)) {
-                             setProperty (Base_Writer.AGS_OUTPUTFILEBASEDONFIELD,nodeValue);
+                             m_pb.setProperty (Base_Writer.AGS_OUTPUTFILEBASEDONFIELD,nodeValue);
                          }
                          if (nodeName.equals(Base_Writer.AGS_OUTPUTFOLDER)) {
-                             setProperty (Base_Writer.AGS_OUTPUTFOLDER,nodeValue);
+                             m_pb.setProperty (Base_Writer.AGS_OUTPUTFOLDER,nodeValue);
                          }
                          if (nodeName.equals(Base_Writer.AGS_PROJECTID)) {
-                             setProperty (Base_Writer.AGS_PROJECTID,nodeValue);
+                             m_pb.setProperty (Base_Writer.AGS_PROJECTID,nodeValue);
                          }
                          if (nodeName.equals(XML_Writer.AGS_STYLESHEET)) {
-                             setProperty (XML_Writer.AGS_STYLESHEET,nodeValue);
+                             m_pb.setProperty (XML_Writer.AGS_STYLESHEET,nodeValue);
                          }
                          if (nodeName.equals(XML_Writer.AGS_HTMLPATH)) {
-                             setProperty (XML_Writer.AGS_HTMLPATH,nodeValue);
+                             m_pb.setProperty (XML_Writer.AGS_HTMLPATH,nodeValue);
                          }
                          if (nodeName.equals(XML_Writer.AGS_STRICTLYONLY)) {
-                             setProperty (XML_Writer.AGS_STRICTLYONLY,nodeValue);
+                             m_pb.setProperty (XML_Writer.AGS_STRICTLYONLY,nodeValue);
                          }
                      }
              }  
     } catch (Exception e) {
-                 m_log.log(Level.SEVERE, e.getMessage());           
+                 log.log(Level.SEVERE, e.getMessage());           
     }
  }
- public void Process(String xml_process_file) {
+ 
+ public boolean try_ProcessFile() {
+     
+     String xml_process_file = m_pb.getProperty(agsml.Constants.AGS_PROCESSFILE);
+     
+     if (!xml_process_file.isEmpty()) {
+     return Process (xml_process_file);
+     } else {
+     return false;
+     }
+     
+ }
+ 
+ public boolean try_AGS_to_AGSML(){
+     
+     String ags_file = m_pb.getProperty(agsml.Constants.AGS_DATASOURCE); 
+     String xml_filefolder = m_pb.getProperty(agsml.Constants.AGS_OUTPUTFILEFOLDER); 
+     String xml_dictionary = m_pb.getProperty(agsml.Constants.AGS_DICTIONARYFILENAME); 
+     String AGSMLDataStructureSeriesId = m_pb.getProperty(agsml.Constants.AGS_DATASTRUCTURESERIESID); 
+     String xml_hole_file = m_pb.getProperty(agsml.Constants.AGS_HOLELISTFILE);
+     
+     AGS_DataSourceType dst = getDataSourceType(ags_file);
+             
+     if (dst != AGS_DataSourceType.AGS) {
+         return false;
+     }
+     
+     return AGS_to_AGSML (ags_file, 
+                       xml_filefolder, 
+                       xml_dictionary, 
+                       AGSMLDataStructureSeriesId, 
+                       xml_hole_file);
+     
+ }
+ 
+ public boolean try_SQL_to_AGSML(){
+     
+     String datasource = m_pb.getProperty(agsml.Constants.AGS_DATASOURCE); 
+     String xml_filefolder = m_pb.getProperty(agsml.Constants.AGS_OUTPUTFILEFOLDER); 
+     String xml_dictionary = m_pb.getProperty(agsml.Constants.AGS_DICTIONARYFILENAME); 
+     String AGSMLDataStructureSeriesId = m_pb.getProperty(agsml.Constants.AGS_DATASTRUCTURESERIESID); 
+     String xml_hole_file = m_pb.getProperty(agsml.Constants.AGS_HOLELISTFILE);
+     
+     AGS_DataSourceType dst = getDataSourceType(datasource);
+             
+     if (dst != AGS_DataSourceType.AccessDb && dst != AGS_DataSourceType.SQLServer) {
+         return false;
+     }
+     
+     return SQL_to_AGSML (datasource, 
+                       xml_filefolder, 
+                       xml_dictionary, 
+                       AGSMLDataStructureSeriesId, 
+                       xml_hole_file);
+  }
+ 
+ public void setProperty(String name, String value) {
+     m_pb.setProperty(name, value);
+ }
+ 
+ public String getProperty (String name) {
+    return m_pb.getProperty(name);
+ }
+ public boolean Process(String xml_process_file) {
       
      if (xml_process_file.isEmpty()) {
-         return;
+         return false;
      }
             
     try {   
          
             AGS_Process ap =  new AGS_Process(xml_process_file);
-            ap.setLogger(m_log);
+            ap.setLogger(log);
             
             //seach root node for global properties
             setProperties (ap.RootNode());
@@ -429,19 +536,19 @@ public class AGS_Converter extends Base_Class {
                          String nodeValue = n1.getTextContent();
                          Element e1 = (Element) n1;
                          
-                        if (nodeName.equalsIgnoreCase(AGS_Process.AGS_DATASTRUCTURE)) {
+                        if (nodeName.equalsIgnoreCase(agsml.Constants.AGS_DATASTRUCTURE)) {
                                
                                  // overrite or add new any local node properties 
                                 // from datrastructure node
                                 setProperties (n1);
-                                passProperties(n1);
+                                m_pb.passProperties(n1);
                                  // Add all properties found to node n1 
                                  // as attributes to be used by called function
-                                String s1 = e1.getAttribute(AGS_Process.AGS_DATASTRUCTURETYPE);
+                                String s1 = e1.getAttribute(agsml.Constants.AGS_DATASTRUCTURETYPE);
                                 AGS_Process.DataStructureType ds1 = ap.getDataStructureType(s1);;
                                 if (ds1.equals(AGS_Process.DataStructureType.NotKnown)) {
-                                    String source = getAttributeValue(n1, Base_Writer.AGS_DATASOURCE);
-                                    String output = getAttributeValue(n1,Base_Writer.AGS_OUTPUTFILE);
+                                    String source = m_pb.getAttributeValue(n1, Base_Writer.AGS_DATASOURCE);
+                                    String output = m_pb.getAttributeValue(n1,Base_Writer.AGS_OUTPUTFILE);
                                     //If the outputfile is empty it is most likely to be xml output
                                     //based on the borehole name. All other valid outputs would require a file name        
                                     if (output.isEmpty()) {
@@ -466,12 +573,13 @@ public class AGS_Converter extends Base_Class {
                         }
                     }
            
-             }      
+             }  
+        return true;
     
         } 
         catch (Exception e) {
-           m_log.log(Level.SEVERE, e.getMessage());            
-               
+           log.log(Level.SEVERE, e.getMessage());            
+           return false ;   
         }
    } 
   public void SQL_to_AGSML(Node DataStructure) {
@@ -480,11 +588,11 @@ public class AGS_Converter extends Base_Class {
                                
             if (DataStructure.getNodeName().equalsIgnoreCase(Base_Writer.AGS_DATASTRUCTURE)) {
                     NamedNodeMap nodeAttribs = DataStructure.getAttributes();
-                    setProperties(nodeAttribs);
+                    m_pb.setProperties(nodeAttribs);
                     
                     SQL_XML_Writer sxw = new SQL_XML_Writer();
                     
-                    sxw.setLogger(m_log);
+                    sxw.setLogger(log);
                     sxw.setProperties(nodeAttribs);
                     sxw.getAGSDictionary();
                     sxw.getHoleList(DataStructure);
@@ -495,7 +603,7 @@ public class AGS_Converter extends Base_Class {
                 }
             }
        catch (Exception e) {
-           m_log.log(Level.SEVERE, e.getMessage());            
+           log.log(Level.SEVERE, e.getMessage());            
                
    }
  } 
@@ -506,30 +614,30 @@ public class AGS_Converter extends Base_Class {
             SQL_KML_Writer skw = null;
             
             
-            if (DataStructure.getNodeName().equalsIgnoreCase(XML_Writer.AGS_DATASTRUCTURE)) {
+            if (DataStructure.getNodeName().equalsIgnoreCase(agsml.Constants.AGS_DATASTRUCTURE)) {
                 NamedNodeMap nodeAttribs = DataStructure.getAttributes();
-                setProperties (nodeAttribs);  
+                m_pb.setProperties (nodeAttribs);  
                 
-                String xml_dictionaryfile = getProperty(Base_Writer.AGS_DICTIONARYFILENAME);
-                String AGSDictionaryId = getProperty(Base_Writer.AGS_DICTIONARYID);
+                String xml_dictionaryfile = m_pb.getProperty(Base_Writer.AGS_DICTIONARYFILENAME);
+                String AGSDictionaryId = m_pb.getProperty(Base_Writer.AGS_DICTIONARYID);
                 if (AGSDictionaryId == null) {
                     AGSDictionaryId="Default";
                 }
                 
-                String xml_datastructurefile = getProperty(Base_Writer.AGS_DATASTRUCTUREFILENAME);
-                String AGSMLDataStructureId = getProperty (Base_Writer.AGS_DATASTRUCTUREID);
-                String stylesheet =  getProperty (XML_Writer.AGS_STYLESHEET); 
-                String source = getProperty (Base_Writer.AGS_DATASOURCE);
-                String xml_output = getProperty(Base_Writer.AGS_OUTPUTFILE);
+                String xml_datastructurefile = m_pb.getProperty(Base_Writer.AGS_DATASTRUCTUREFILENAME);
+                String AGSMLDataStructureId = m_pb.getProperty (Base_Writer.AGS_DATASTRUCTUREID);
+                String stylesheet =  m_pb.getProperty (XML_Writer.AGS_STYLESHEET); 
+                String source = m_pb.getProperty (Base_Writer.AGS_DATASOURCE);
+                String xml_output = m_pb.getProperty(Base_Writer.AGS_OUTPUTFILE);
                 
                 if (xml_output == null) {
-                    xml_output = getProperty(Base_Writer.AGS_OUTPUTFOLDER);
+                    xml_output = m_pb.getProperty(Base_Writer.AGS_OUTPUTFOLDER);
                 }
                 
                 if (source != null && xml_output != null && xml_dictionaryfile != null) { 
                                      
                     skw = new SQL_KML_Writer(xml_output,  stylesheet);
-                    skw.setLogger(m_log);
+                    skw.setLogger(log);
                     
                     skw.setAGSDictionaryFile(xml_dictionaryfile, AGSDictionaryId);
                     
@@ -540,7 +648,7 @@ public class AGS_Converter extends Base_Class {
                     skw.getAGSDataStructure(DataStructure);
                     }
                   
-                    String xml_hole_file = getProperty (Base_Writer.AGS_HOLELIST);
+                    String xml_hole_file = m_pb.getProperty (Base_Writer.AGS_HOLELIST);
                 
                     if (xml_hole_file != null) {
                              /* open hole section file and find holes node */
@@ -576,12 +684,47 @@ public class AGS_Converter extends Base_Class {
             }
         }
       catch (Exception e) {
-           m_log.log(Level.SEVERE, e.getMessage());            
+           log.log(Level.SEVERE, e.getMessage());            
                
    }
- }  
-      
+ } 
+ public AGS_DataSourceType getDataSourceType (String source) {
+     
+     String s1 = source.toLowerCase();
+     
+     if (s1.contains(".gpj")){
+         return AGS_DataSourceType.AccessDb;
+     }
+    
+     if (s1.contains(".mdb") || s1.contains(".accdb")){
+         return AGS_DataSourceType.AccessDb;
+     }
+     
+     
+     if (s1.contains(".ags")){
+         return AGS_DataSourceType.AGS;
+     }
+     
+     if (s1.contains("jdbc:")){
+         return AGS_DataSourceType.SQLServer;
+     }
+     
+     return AGS_DataSourceType.None;
   
-  }
+ }
+ 
+   @Override
+ public void run() { 
+        
+        try { 
+              try_ProcessFile();  
+              try_AGS_to_AGSML();
+              try_SQL_to_AGSML();
+           
+        } catch (Exception e) {
+             e.printStackTrace();
+        }
+     }
+}
 
 

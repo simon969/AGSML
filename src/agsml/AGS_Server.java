@@ -26,26 +26,25 @@ import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.Duration;
-
+import java.util.Properties;
+import agsml.AGS_Package;
 
 public class AGS_Server extends Thread {
-    private TextAreaHandler textAreaHandler;
-    private Logger mlog; 
-    private JTree tree;
+  //  private TextAreaHandler mTextAreaHandler;
+    public Logger log; 
+  //  private JTree tree;
     public static String HOSTNAME = "localhost"; 
     public static int LISTENING_PORT = 20402; 
-    public static int BUFF_SIZE = 4062; 
-    
+    public static int MAX_BUFFER_SIZE = 4062; 
     private ServerSocket mServerSocket ; 
     private AGS_ServerClients mServerClients ;
-    private String mDictionaryFile = "";
-    private String mDefaultDataStructure = "";
-    private String WorkingFolder = "" ;
-   
+    private static String DICTIONARY_SOURCE = "";
+    private static String DATA_STRUCTURE = "";
+    private AGS_Dictionary mAGSDictionary = null; 
+    private AGS_DataStructure mAGSDataStructure = null;
     public enum ClientStatus {
     EMPTY {
         public String toString() {
@@ -65,6 +64,11 @@ public class AGS_Server extends Thread {
     SENT_AGS {
         public String toString() {
           return "SENT_AGS";
+        }
+    },
+    SAVED_AGS {
+        public String toString() {
+          return "SAVED_AGS";
         }
     },
     FAIL_AGS {
@@ -98,40 +102,40 @@ public class AGS_Server extends Thread {
         }
     } 
     }  
-public AGS_Server (int port) {
-     Object obj = this;
-     LISTENING_PORT = port;
-     mlog = Logger.getLogger( obj.getClass().getName());
-     mlog.setLevel(Level.INFO);
-     textAreaHandler = new TextAreaHandler();   
-     mlog.addHandler(textAreaHandler);  
+ public AGS_Server () {
+   }
     
-}
+  public AGS_Server (int port, String xml_dictionary_source, String xml_datastructure) {
+    
+    LISTENING_PORT = port;
+    DICTIONARY_SOURCE = xml_dictionary_source;
+    DATA_STRUCTURE = xml_datastructure;
+  }
+  
 
-public void setLoggerTextArea(JTextArea textArea, Level level) {
-       textAreaHandler.textArea = textArea;
-       textAreaHandler.setLevel(level);
+public void setLogger( Logger Log) {
+       log = Log;
    }
-public void setClientTree(JTree t) {
-    tree = t ;
+public void setPort(int port) {
+    LISTENING_PORT = port;
 }
-Logger getLogger() {
-       return mlog;
-   }
-public void setDictionaryFile(String xml_file) {
-    mDictionaryFile = xml_file;
+public int getPort(){
+    return LISTENING_PORT;
 }
-public void setDefaultDataStructure(String id){
-   mDefaultDataStructure = id;
+public void setDictionarySource(String xml_source) {
+    DICTIONARY_SOURCE = xml_source;
+}
+public void setDataStructureSeries(String id){
+   DATA_STRUCTURE = id;
 }        
  public void run() {
         // Open server socket for listening
         //start listening on the server socket 
+        loadDictionary();
         bindServerSocket(); 
-      
         // Start the ServerDispatcher thread 
         mServerClients = new AGS_ServerClients(); 
-               
+        mServerClients.setLogger(log);
         // Infinitely accept and handle client connections 
         handleClientConnections();   
  }   
@@ -140,72 +144,86 @@ public void shutdown(){
      try {
         interrupt();
         mServerSocket.close();
+        String msg = "AGS Server closed (" + mServerSocket.getInetAddress() + ":"  + mServerSocket.getLocalPort() + ")";
         mServerSocket = null;
-        String msg = "AGS Server stopped";
-        System.out.println ( msg);
-        mlog.info(msg);
+        log.info(msg);
         } 
         catch (Exception e) {
-            
+        log.severe (e.getMessage()) ;   
         }
  }     
 private void bindServerSocket () {  
     
         try {
             mServerSocket = new ServerSocket (LISTENING_PORT);
-            System.out.println ( "AGS Server started on port " + LISTENING_PORT);
+            log.info ( "AGS Server started (" + mServerSocket.getInetAddress() + ":"  + mServerSocket.getLocalPort() + ")");
         } catch (IOException ioe) {
-            System.err.println ( "AGS Server cannot start listening on port " + LISTENING_PORT);
-            ioe.printStackTrace (); 
-          //  System.exit (- 1 );
+            log.severe (ioe.getMessage());
         } 
 } 
-private void pollActiveClients() {
-    if (tree != null) {
-        
-        mServerClients.purgeClients();
-               
-        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
-        DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
-        root.removeAllChildren();
-     //   DefaultMutableTreeNode top =  new DefaultMutableTreeNode(HOSTNAME + "AGS SERVER:" + LISTENING_PORT);
-        while (mServerClients.hasNext()) {
-        AGS_ServerClient ac = mServerClients.Next();
-        root.add(new DefaultMutableTreeNode(ac.Details() + ac.ConnectionDuration() + ac.ConnectionStatus()));
-        System.out.println(ac.Details() + ac.ConnectionDuration() + ac.ConnectionStatus());
+private void loadDictionary() {
+    try {
+    
+        if (!DICTIONARY_SOURCE.isEmpty()) {
+        mAGSDictionary = new AGS_Dictionary(DICTIONARY_SOURCE);
         }
-        
-        model.reload(root);
+        if (!DATA_STRUCTURE.isEmpty()) {
+        mAGSDataStructure =  new AGS_DataStructure (mAGSDictionary); 
+        mAGSDataStructure.setDataStructureSeries(DATA_STRUCTURE);
+        }
+    
+    } catch (Exception e) {
+        log.severe (e.getMessage());
     }
     
-   
-    
-    
-} 
+}
+
+//private void pollActiveClients() {
+//    if (tree != null) {
+//        
+//        mServerClients.purgeClients();
+//               
+//        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+//        DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
+//        root.removeAllChildren();
+//     //   DefaultMutableTreeNode top =  new DefaultMutableTreeNode(HOSTNAME + "AGS SERVER:" + LISTENING_PORT);
+//        while (mServerClients.hasNext()) {
+//        AGS_ServerClient ac = mServerClients.Next();
+//        root.add(new DefaultMutableTreeNode(ac.Details() + ac.ConnectionDuration() + ac.ProgressStatus()));
+//        System.out.println(ac.Details() + ac.ConnectionDuration() + ac.ProgressStatus());
+//        }
+//        
+//        model.reload(root);
+//    }
+//} 
+
+
 private void handleClientConnections ()  {
         while ( !isInterrupted()) {
             try {
                 Socket socket = mServerSocket.accept (); 
                 if (socket != null) {
-                    AGS_ServerClient client = new AGS_ServerClient (this, socket);
-                     
-                     mServerClients.addClient (client); 
-                     client.setDictionaryFile(mDictionaryFile);
-                     client.setDataStructure(mDefaultDataStructure);
-                     client.start();
+                    AGS_ServerClient client = new AGS_ServerClient (socket);
+                    mServerClients.addClient (client); 
+                    client.setDictionary(mAGSDictionary);
+                    client.setDataStructure(mAGSDataStructure);
+                    client.setLogger(log);
+                    client.start();
                 }
                 
-            pollActiveClients();
+           // pollActiveClients();
             
             }   catch (SocketException se) {
-               System.out.println ( "AGS Server closed on port " + LISTENING_PORT);
+               log.severe ( "AGS Server closed on port " + LISTENING_PORT);
              } 
             catch (IOException ioe) {
-                ioe.printStackTrace ();
+               log.severe(ioe.getMessage());
             } 
 
          
-        } 
+        }
+        
+        this.shutdown();
         
   } 
 } 
@@ -214,7 +232,7 @@ class AGS_ServerClients {
     
     private Vector<AGS_ServerClient> mClients = new Vector<AGS_ServerClient>();
     private Iterator<AGS_ServerClient> iter = null;
-    
+    private Logger log;
     public AGS_ServerClient Next() {return iter.next();}
     
     public Boolean hasNext() {
@@ -233,10 +251,12 @@ class AGS_ServerClients {
     
      /* Adds given client to the server's client list. 
      */ 
-
+    public void setLogger (Logger Log){
+        log = Log;
+    }
     public synchronized void addClient(AGS_ServerClient aClient) { 
         mClients.add(aClient); 
-        System.out.println ( "AGS Client connected " + aClient.Details());
+        log.info ( "AGS Client connected " + aClient.Details());
     } 
 
     /** 
@@ -247,7 +267,10 @@ class AGS_ServerClients {
     public synchronized void purgeClients() {
         for (int i=0; i < mClients.size(); i++) {
         AGS_ServerClient ac = mClients.get(i);
-            if (ac.IsClosed()) {
+             
+            if (ac.IsClosed() || 
+                ac.getProgressStatus()==AGS_Server.ClientStatus.FAIL_XML ||
+                ac.getProgressStatus()==AGS_Server.ClientStatus.SENT_XML ) {
                 deleteClient(ac);
             }
         }
@@ -262,35 +285,31 @@ class AGS_ServerClients {
 
 
 class AGS_ServerClient extends Thread {
-    private AGS_Server server;
     private Socket socket;
     private InetAddress addr;
     private static final LocalDateTime timeStamp = LocalDateTime.now();
-    private BufferedReader mSocketReader = null; 
-    private BufferedOutputStream mSocketWriter = null; 
     private String mAGS_data = null;
     private String mXML_data = null;
-    private String  mDictionaryFile = null;
-    private String  mDataStructure = null;
-    private AGS_Server.ClientStatus status = AGS_Server.ClientStatus.EMPTY;
-    private int BUFF_SIZE = AGS_Server.BUFF_SIZE;
-    private final String AGS_START = "[ags_start]";
-    private final String AGS_END = "[ags_end]";
-    private final String XML_START = "[xml_start]";
-    private final String XML_END = "[xml_end]";
     
-    public AGS_ServerClient(AGS_Server ags_s, Socket s) {
+    private String  mDictionarySource = null;
+    private AGS_Dictionary mAGSDictionary = null;   
+    private String  mDataStructureSeries = null;
+    private AGS_DataStructure mAGSDataStructure = null;
+    
+    private AGS_Server.ClientStatus status = AGS_Server.ClientStatus.EMPTY;
+    private Logger log;  
+      
+    public AGS_ServerClient(Socket s) {
     
         try {
-            server = ags_s;
             socket = s;
             addr = socket.getInetAddress();
-            mSocketReader = new BufferedReader(new InputStreamReader(socket.getInputStream(),"UTF-8")); 
-            mSocketWriter = new BufferedOutputStream(socket.getOutputStream()); 
-            
-        } catch (IOException iox) {
-        
+            } catch (Exception ex) {
+              log.severe(ex.getMessage());
         }
+    }
+    public void  setLogger(Logger Log) {
+        log = Log;
     }
     public String Details() {
         String details;
@@ -298,86 +317,162 @@ class AGS_ServerClient extends Thread {
         details += "Started:" + timeStamp.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);  
         return details;
     }
-    public void setDictionaryFile(String fileName) {
-        mDictionaryFile = fileName;
-    }
-    public void setDataStructure(String id) {
-        mDataStructure = id;
-    }
     
+    public void setDictionary(AGS_Dictionary ags_dic) {
+        mAGSDictionary = ags_dic;
+      }
+    public void setDataStructure(AGS_DataStructure ags_ds) {
+        mAGSDataStructure = ags_ds;
+    }
+    public AGS_DataStructure getDataStructure(String fileName,String datastructureseries,Constants.AGSVersion ags) {
+        try {
+            if (mAGSDataStructure == null) {
+                    mAGSDataStructure = new AGS_DataStructure(fileName, datastructureseries, ags); 
+               return mAGSDataStructure;
+               
+            } 
+            AGS_Data ad1 = new AGS_Data(mAGSDataStructure.source);
+            String s1 =  ad1.FileNameNoPath();   
+            
+            AGS_Data ad2 = new AGS_Data(fileName);
+            ad2.setResourceFolder(ad1.getResourceFolder());
+            String s2 =  ad2.FileNameNoPath();
+                
+            if (!s1.equalsIgnoreCase(s2)) {
+                  String s3 = ad2.getFullResourcePath();
+                   mAGSDataStructure = new AGS_DataStructure(s3, datastructureseries, ags); 
+                } else {
+                    if (!mAGSDataStructure.getDataStructureSeriesName().equals(datastructureseries)) {
+                       mAGSDataStructure.setDataStructureSeries(datastructureseries);
+                    }
+                    if (!mAGSDataStructure.getAGSVersion().equals(ags)) {
+                       mAGSDataStructure.setAGSVersion(ags); 
+                    }   
+                }
+                        
+            return mAGSDataStructure;
+        } catch (Exception e) {
+            log.severe(e.getMessage());
+            return null;
+        }
+    }
+   
+   public AGS_Dictionary getDictionary(String fileName,  Constants.AGSVersion ags) {
+       
+        try {
+            if (mAGSDictionary == null) {
+                mAGSDictionary =  new AGS_Dictionary(fileName, ags.toString());
+                return mAGSDictionary;
+            }
+            
+            AGS_Data ad1 = new AGS_Data(mAGSDictionary.source);
+            String s1 =  ad1.FileNameNoPath();   
+                
+            AGS_Data ad2 = new AGS_Data(fileName);
+            ad2.setResourceFolder(ad1.getResourceFolder());
+            String s2 =  ad2.FileNameNoPath();
+                
+            if (!s1.equalsIgnoreCase(s2)) {
+                String s3 = ad2.getFullResourcePath();
+                mAGSDictionary =  new AGS_Dictionary(s3, ags.toString());
+               
+            }
+            if (mAGSDictionary.getAGSVersion() != ags) {
+                mAGSDictionary.setAGSVersion (ags);
+            }
+            
+            return mAGSDictionary;
+            
+       } catch (Exception e) {
+           return null;
+       }
+   }
+       
     public Long ConnectionDuration() {
         return Duration.between(LocalDateTime.now(), timeStamp).getSeconds();
     }
     
-    public String ConnectionStatus() {
+    public String ProgressStatus() {
         return status.toString();
     }
     public boolean IsClosed() {
         return socket.isClosed();
     }
+    public AGS_Server.ClientStatus getProgressStatus() {
+        return status;
+    }
+    
     public void processAGS() {
         
         try {
-            String msg = "";
+                       
+            if (mDictionarySource.isEmpty()) {
+               log.info("AGS_DictionaryFile not provided default dictionary will be used" ); 
+            }
             
+            if (mDataStructureSeries.isEmpty()) {
+               log.info("AGS_DataStructure not provided default datastructure will be used" ); 
+            } 
             
-            if (mAGS_data != null && 
-                    mDictionaryFile != null &&
-                        mDataStructure != null) {
+            if (mAGS_data.isEmpty() ) {
+                throw new Exception ("AGS_Data not provided");
+            }    
+            
+                AGS_ReaderText art = new AGS_ReaderText (mAGS_data);
+                AGS_Dictionary dic = null;
+                AGS_DataStructure ds = null;
+                AGS_ReaderLine alr = null;
+
+                if (art.ags_version.toInt() > Constants.AGSVersion.AGS31a.toInt()){
+                alr = new AGS_ReaderLine40 (mAGS_data);    
+                dic = getDictionary(mDictionarySource,art.ags_version);
+                ds = getDataStructure(mDictionarySource, mDataStructureSeries, Constants.AGSVersion.AGS404);
+                } 
+                if (Constants.AGSVersion.NONE.toInt() < Constants.AGSVersion.AGS31a.toInt() && art.ags_version.toInt() <= Constants.AGSVersion.AGS31a.toInt() ){
+                alr = new AGS_ReaderLine31 (mAGS_data);
+                dic = getDictionary(mDictionarySource,art.ags_version);
+                ds = getDataStructure(mDictionarySource, mDataStructureSeries, Constants.AGSVersion.AGS31a);
+                }
+
+                log.info("        ags lines:" + art.AGSLines());
+                log.info("   identified ags:" + art.AGSVersion().toString());
+                log.info("datastructure set:" + mDataStructureSeries);
+
+                if (alr == null ) {
+                 throw new Exception ("AGS_Reader not identified:" + art.ags_version.toId());    
+                }
+                if (dic == null) {
+                    throw new Exception("AGS_Dictionary not identified:" + mDictionarySource);
+                }
+                if (ds == null) {
+                    throw new Exception("AGS_DataStructure not identified:" + mDataStructureSeries);
+                }
+
+                AGS_XML_Writer axw = new AGS_XML_Writer();
+                axw.setLogger(log);
+                axw.setAGSLineReader(alr);
+                axw.setAGSDictionary(dic);
+                axw.setAGSDataStructure(ds);
+                axw.Process();
+                mXML_data = axw.toString();
+                log.info("AGS data processed Ok");
+                status = AGS_Server.ClientStatus.READY_XML;
                 
-            AGS_ReaderText art = new AGS_ReaderText (mAGS_data);
-            AGS_Dictionary dic = null;
-            AGS_DataStructure ds = null;
-            AGS_ReaderLine alr = null;
             
-            if (art.ags_version.toInt() > AGS_Dictionary.AGSVersion.AGS31a.toInt()){
-            alr = new AGS_ReaderLine40 (mAGS_data);    
-            dic = new AGS_Dictionary(mDictionaryFile,art.ags_version.toDictionaryId());
-            ds = new AGS_DataStructure(mDictionaryFile, mDataStructure);
-            } 
-            if (art.ags_version.toInt() <= AGS_Dictionary.AGSVersion.AGS31a.toInt()){
-            alr = new AGS_ReaderLine31 (mAGS_data);
-            dic = new AGS_Dictionary(mDictionaryFile,art.ags_version.toDictionaryId());
-            ds = new AGS_DataStructure(mDictionaryFile, mDataStructure);
-            }
-            
-            server.getLogger().info("        ags lines:" + art.m_ags_data.length());
-            server.getLogger().info("   identified ags:" + art.ags_version.toString());
-            server.getLogger().info("datastructure set:" + mDataStructure);
-            
-            if (alr != null && dic != null && ds != null) {
-                           
-            AGS_XML_Writer axw = new AGS_XML_Writer();
-            axw.setLogger(server.getLogger());
-            axw.setAGSLineReader(alr);
-            axw.setAGSDictionary(dic);
-            axw.setAGSDataStructure(ds);
-            axw.Process();
-            mXML_data = axw.toString();
-            msg = "AGS data processed Ok";
-            status = AGS_Server.ClientStatus.READY_XML;
-            } 
-            else {
-            msg = "AGS version not identified";
-            status = AGS_Server.ClientStatus.FAIL_XML;  
-            }
-            
-            } else {
-            msg = "AGS_data, AGS_DictionaryFile or AGS_Datastructure not provided";
-            status = AGS_Server.ClientStatus.FAIL_XML;    
-            } 
-        server.getLogger().info(msg);
         }
         
         catch (Exception e) {
            status =  AGS_Server.ClientStatus.FAIL_XML;
-           server.getLogger().info(e.getMessage());
+           log.info(e.getMessage());
         }
         
     }
     private void sendLine(String line) {
         try {
-           //  mSocketWriter.write(line);
+             BufferedWriter mSocketWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),"UTF-8")); 
+             mSocketWriter.write(line);
+           //  log.info("AGS data sent (" + line + ")");
+             mSocketWriter.flush();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -385,23 +480,24 @@ class AGS_ServerClient extends Thread {
 
 private void sendXML()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append(XML_START);
-        sb.append(System.lineSeparator());
-        sb.append(mXML_data);
-        sb.append(System.lineSeparator());
-        sb.append(XML_END);
-        sb.append(System.lineSeparator());
+        try {
+            
+            BufferedOutputStream mSocketWriter = new BufferedOutputStream(socket.getOutputStream()); 
+            
+            AGS_Package ap = new AGS_Package(mXML_data);
+            
+            String s1 = ap.getContentsXML();
+            
+            byte buffer[] = new byte[AGS_Server.MAX_BUFFER_SIZE];
+            int length = 0;
+            int total =0 ;
+
+
         
-        String s1 = sb.toString();
-        byte buffer[] = new byte[BUFF_SIZE];
-        int length = 0;
-        int total =0 ;
-        
-        // https://www.programcreek.com/java-api-examples/java.io.BufferedInputStream
+// https://www.programcreek.com/java-api-examples/java.io.BufferedInputStream
          
         BufferedInputStream bis = new BufferedInputStream( new ByteArrayInputStream(s1.getBytes(StandardCharsets.UTF_8)));
-        try {
+ 
             while((length = bis.read(buffer)) != -1) {
                 mSocketWriter.write(buffer, 0, length);
                 total =+ length;
@@ -410,17 +506,23 @@ private void sendXML()
             mSocketWriter.flush();
             String msg = "XML data sent (" + total + ")";
             //System.out.println(msg);
-           server.getLogger().info(msg);
-           status = AGS_Server.ClientStatus.SENT_XML;
+            log.info(msg);
+            status = AGS_Server.ClientStatus.SENT_XML;
         
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
-      
-private void receiveAGS()
+private void receiveAGS() {
+    receiveAGSByStream();
+}
+private void receiveAGSByLine()
       {
+      try {     
+               
+       BufferedReader mSocketReader = new BufferedReader(new InputStreamReader(socket.getInputStream(),"UTF-8")); 
+          
     // status = AGS_Server.ClientStatus.RECEIVING_AGS;
        StringBuilder sb = new StringBuilder();
        int linecount = 0 ;
@@ -428,19 +530,29 @@ private void receiveAGS()
        
        boolean read = false;
        
-       try {  
+ 
         
            while ((line = mSocketReader.readLine()) != null) {
             
-            if (line.equals(AGS_END)) {
+            if (line.equals(AGS_Package.FILE_END)) {
                 read = false;
-               
-                mAGS_data = sb.toString();
-                String msg ="AGS data received (" + linecount + ")";
+                AGS_Package ap = new AGS_Package(AGS_Package.ContentType.AGS, sb.toString());
                 
-                System.out.println(msg);
-                server.getLogger().info(msg);
+                if (ap.HasAGSData()) {
+                mAGS_data = ap.data_ags;
                 status = AGS_Server.ClientStatus.READY_AGS;
+                }
+                
+                if (ap.HasDataDictionary()) {
+                mDictionarySource = ap.data_dictionary;
+                }
+                
+                if (ap.HasDataStructureSeries()) {
+                mDataStructureSeries  = ap.data_series;
+                }
+                
+                String msg ="AGS data package received (" + linecount + ")";
+                log.info(msg);
                 return;
                 
             }             
@@ -449,11 +561,10 @@ private void receiveAGS()
                 sb.append(line);
                 sb.append(System.lineSeparator());
                 linecount++;
-            //    System.out.println("received " + line); 
             }    
             
-            if (line.equals(AGS_START)) {
-                System.out.println ("Receiving AGS data...");
+            if (line.equals(AGS_Package.FILE_START)) {
+                log.info ("Receiving AGS data package...");
                 read = true;
             }
           }
@@ -461,43 +572,120 @@ private void receiveAGS()
  
          
       } catch (Exception e) {
-            e.printStackTrace();
+           log.severe (e.getMessage());
       }
 }
 
+private void receiveAGSByStream()
+      {
+            // https://stackoverflow.com/questions/5867227/convert-streamreader-to-byte
+
+            try {
+                
+                InputStream networkStream = socket.getInputStream();
+                BufferedInputStream s_in = new BufferedInputStream(networkStream);
+                Boolean ReadData = false;
+                int read;
+                byte[] buffer = new byte[AGS_Server.MAX_BUFFER_SIZE];
+
+                // MemoryStream ms = new MemoryStream();
+                StringBuilder sb =  null; 
+                while ((read = s_in.read(buffer, 0, AGS_Server.MAX_BUFFER_SIZE)) > 0) {
+                        // ms.Write(buffer, 0, read);
+                        String s = new String(buffer, 0, read);
+                          if (ReadData==true) {
+                            if (s.indexOf(AGS_Package.FILE_END)>0) {
+                              sb.append(s);
+                              break; 
+                            } 
+                            else {
+                              sb.append(s);  
+                            }
+                        }
+                        if (ReadData==false) {
+                            if (s.indexOf(AGS_Package.FILE_START)==0) {
+                                log.info ("AGS data package receiving.......");
+                                ReadData=true;
+                                sb =  new StringBuilder();
+                                sb.append(s);
+                            } else {
+                                throw new Exception ("No recognised file start..'" + s.substring(0, 16) + "'");
+                            }
+                        }
+                      
+                                               
+                    }
+
+                //    xml_data = Encoding.UTF8.GetString(ms.ToArray());
+                AGS_Package ap = new AGS_Package(AGS_Package.ContentType.AGS, sb.toString());
+                
+                if (ap.HasAGSData()) {
+                mAGS_data = ap.data_ags;
+                status = AGS_Server.ClientStatus.READY_AGS;
+                } else { 
+                throw new Exception("AGS Package has no identifieable AGS data");
+                }
+                    
+                if (ap.HasDataDictionary()) {
+                mDictionarySource =  ap.data_dictionary;
+                }
+                if (ap.HasDataStructureSeries()) {
+                mDataStructureSeries =  ap.data_series;
+                }
+                log.info ("AGS data package received (" + mAGS_data.length() + ")");
+                               
+            } catch (Exception e) {
+                log.severe(e.getMessage());
+                status = AGS_Server.ClientStatus.FAIL_AGS;
+            }
+}
 
 @Override
     public void run() { 
+        
+       log.info("AGS_ServerClient started: " + this.addr);
         
         try { 
             while (!isInterrupted()) { 
                 
                 if (status == AGS_Server.ClientStatus.EMPTY) {
-                  receiveAGS();
+                    receiveAGS();
                 }             
                 
                 if (status == AGS_Server.ClientStatus.READY_AGS) {
-                   processAGS();
+                    processAGS();
                 }
                 
                 if (status == AGS_Server.ClientStatus.READY_XML) {
-                   sendXML();
+                    sendXML();
                 }
                 
                 if (status == AGS_Server.ClientStatus.FAIL_XML) {
-                   sendLine("XML conversion failed");
+                    sendLine("XML conversion failed");
+                    this.socket.close();
+                    break;
+                }
+                if (status == AGS_Server.ClientStatus.FAIL_AGS) {
+                    sendLine("AGS file receive failed");
+                    this.socket.close();
+                    break;
+                } 
+                if (status == AGS_Server.ClientStatus.SENT_XML) {
+                    break;
                 }
             }
 
-        }  catch (Exception ex) { 
-            
+        }  catch (Exception ex) {
+           log.severe(ex.getMessage());
+      
        // Problem reading from socket (broken connection) 
        // Communication is broken. Interrupt both listener and 
        // sender threads 
-        }
+        } 
+        log.info("AGS_ServerClient finished: " + this.addr);
     }
-    
 }
+
 
 
 

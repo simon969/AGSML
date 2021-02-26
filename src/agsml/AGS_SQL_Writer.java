@@ -52,18 +52,27 @@ class AGS_SQL_Writer extends SQL_Writer implements Converter {
         return 0;
 
     }
+
    public int getAGSReader() {
     try {
         
         String s1 =  getProperty(AGS_DATASOURCE);
-        AGS_Dictionary.AGSVersion ags1 = m_dic.getAGSVersion();
+        Constants.AGSVersion ags1 = m_dic.getAGSVersion();
 
         switch (ags1) {
-            case AGS30: case AGS31: case AGS31a:
+        
+            case AGS30: 
+            case AGS31: 
+            case AGS31a:
             m_lr = new AGS_ReaderLine31 (s1);
-            case AGS403: case AGS404:
+            break;
+            
+            case AGS403: 
+            case AGS404:
             m_lr = new AGS_ReaderLine40 (s1);
+            break;
         }
+        
         return ags1.toInt();
     }
     catch (Exception e) {
@@ -165,7 +174,7 @@ public void setAGSDictionaryNode(Node n1) {
 
             } while (result == AGS_ReaderLine.LineType.rowData || result == AGS_ReaderLine.LineType.tableHeader || result == AGS_ReaderLine.LineType.tableUnits);
         } catch (Exception e) {
-            m_log.log(Level.SEVERE, e.getMessage());
+            log.log(Level.SEVERE, e.getMessage());
         }
     }
 }

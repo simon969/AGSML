@@ -16,15 +16,24 @@ import java.io.PrintWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter; 
-
-import static agsml.AGS_Server.BUFF_SIZE;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import agsml.AGS_Package;
+import static agsml.AGS_Server.MAX_BUFFER_SIZE;
 import static agsml.AGS_Server.LISTENING_PORT;
 import static agsml.AGS_Server.HOSTNAME;
 import static agsml.AGS_Server.ClientStatus;
+import java.io.ByteArrayInputStream;
+
 import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+
 /**
  *
  * @author Simon
@@ -32,51 +41,67 @@ import java.sql.PreparedStatement;
 
 public class AGS_Client extends Thread {
 
-    
     private String SERVER_HOSTNAME =  agsml.AGS_Server.HOSTNAME;
     private int SERVER_PORT = agsml.AGS_Server.LISTENING_PORT;
-    private BufferedInputStream mSocketReader; 
-    private BufferedWriter mSocketWriter; 
+    private Socket socket;   
+  //  private BufferedInputStream mSocketReader; 
+  //  private BufferedWriter mSocketWriter; 
     
     private String mAGS_fileIN;
-    private String mXML_fileOUT;
-    
+    private String mAGS_fileOUT;
+
+    private String mXML_fileOUT;    
+
     private String mDB_Connect;
-    private String mDB_PStatement;
-    private final int mXML_paramId = 1;
+    private String mDB_StatementAGS;
+    private final int mDB_ParamIdAGS = 1;  
+    private String mDB_StatementXML;
+    private final int mDB_ParamIdXML = 1;
     
     private String mAGS_data;
     private String mXML_data;
     
-    public final String AGS_START = "[ags_start]";
-    public final String AGS_END = "[ags_end]";
-    public final String XML_START = "[xml_start]";
-    public final String XML_END = "[xml_end]";
+    private String mDictionaryFile;
+    private String mDataStructureSeries;
+    
+    private Logger log;
     
     private ClientStatus status = agsml.AGS_Server.ClientStatus.EMPTY;
     
-    public AGS_Client (String host, int port) { 
+    public AGS_Client (String host, int port) throws IOException { 
 
         SERVER_HOSTNAME = host; 
         SERVER_PORT = port; 
         
-        try { 
-            Socket socket = new Socket(SERVER_HOSTNAME, SERVER_PORT); 
-            mSocketReader = new BufferedInputStream(socket.getInputStream()); 
-            mSocketWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),"UTF-8")); 
+        socket = new Socket(SERVER_HOSTNAME, SERVER_PORT); 
+           // mSocketReader = new BufferedInputStream(socket.getInputStream()); 
+           // mSocketWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),"UTF-8")); 
           
-            System.out.println("Connected to AGS Server " + SERVER_HOSTNAME + ":" + SERVER_PORT); 
-
-        } catch (IOException ioe) { 
-            System.err.println("Cannot connect to " + SERVER_HOSTNAME + ":" + SERVER_PORT); 
-            ioe.printStackTrace(); 
-            System.exit(-1); 
-        } 
-       
+     } 
+    
+    public void setLogger(Logger Log) {
+        log = Log;
+    }
+    
+    public int ValidateInputData() {
+    
+        int retval = 0;
         
-        
-    } 
-    public void setAGSFile(String ags_fileIN) {
+      // Minimum input data requirements'
+         if (mAGS_fileIN.isEmpty()) retval=+ -1;
+         if (mDictionaryFile.isEmpty()) retval=+ -1;
+         if (mDataStructureSeries.isEmpty()) retval=+-1;
+         return retval;
+         
+    }
+    
+    public void setDictionaryFile(String s1){
+        mDictionaryFile  = s1;
+    }
+    public void setDataStructureSeries(String s1){
+        mDataStructureSeries  = s1;
+    }
+    public void setAGSFileIN(String ags_fileIN) {
         mAGS_fileIN = ags_fileIN;
     }
      
@@ -90,52 +115,105 @@ public class AGS_Client extends Thread {
      public void setXMLDatabaseSave(String DbConnection, 
                                     String PStatement) {
          mDB_Connect = DbConnection;
-         mDB_PStatement = PStatement;
+         mDB_StatementXML = PStatement;
      }
-     public void setXMLFileSave(){ setXMLFileSave("");}
-     
-     public void setXMLFileSave(String fileName){
-        if (fileName == null && mAGS_fileIN != null) {
-          int ext = mAGS_fileIN.lastIndexOf("ags");
-        mXML_fileOUT = mAGS_fileIN.substring(0, ext) + "xml";  
-        } else {
-        mXML_fileOUT = fileName;
+    
+    public void setXMLFileSaveFromAGS(boolean Overwrite, boolean IncludeDateStamp) {
+        if (mAGS_fileIN != null) {
+        AGS_Data f = new AGS_Data(mAGS_fileIN);
+        f.changeExtension(".xml");
+        if (!Overwrite) {
+            f.addUniqueNumber();
         }
-     } 
+        if (IncludeDateStamp) {
+            f.addDateStamp();
+        }
+        mXML_fileOUT = f.File().getAbsolutePath();
+        
+      //  int ext = mAGS_fileIN.lastIndexOf("ags");
+      //  String filename = mAGS_fileIN.substring(0, ext) + "xml";  
+      //  mXML_fileOUT = getFileName(filename, Overwrite, IncludeDateStamp);
+        } 
+    }    
+    
+    public void setXMLFileSave(String fileName, boolean Overwrite, boolean IncludeDateStamp){
+        if (fileName != null) {
+        AGS_Data f = new AGS_Data(fileName);
+            if (!f.File().isAbsolute()) {
+                f.getFullOutputPath();
+            }
+            if (!Overwrite) {
+                f.addUniqueNumber();
+            }
+            if (IncludeDateStamp) {
+                f.addDateStamp();
+            }
+        mXML_fileOUT = f.File().getAbsolutePath();
+      }
+    }
+         
+    public void setAGSDatabaseSave(String DbConnection, 
+                                    String PStatement) {
+         mDB_Connect = DbConnection;
+         mDB_StatementXML = PStatement;
+    }
+    public void setAGSFileSave(String fileName, boolean Overwrite, boolean IncludeDateStamp){
+        if (fileName != null) {
+            AGS_Data f = new AGS_Data(fileName);
+            if (!Overwrite) {
+                f.addUniqueNumber();
+            }
+            if (IncludeDateStamp) {
+                f.addDateStamp();
+            }
+            
+            mAGS_fileOUT = f.File().getAbsolutePath();
+      //   mAGS_fileOUT = getFileName (filename, Overwrite, IncludeDateStamp);
+        }
+     }
      
      private void receiveXMLData() { 
-         StringBuilder sb= new StringBuilder();
-         byte buffer[] = new byte[BUFF_SIZE];
+         
+         try { 
+         
+         BufferedInputStream mSocketReader = new BufferedInputStream(socket.getInputStream()); 
+         
+         StringBuilder sb = new StringBuilder();
+         byte buffer[] = new byte[AGS_Server.MAX_BUFFER_SIZE];
          int length;
          int total;
-         try {       
+               
                 while((length = mSocketReader.read(buffer)) != -1) {
                 String s1 = new String(buffer, 0, length);
                 sb.append(s1); 
                 total =+ length;
-                    if (s1.indexOf(XML_END) > 0) {
-                        System.out.println("XML data received (" + total + ")");
+                    if (s1.indexOf(AGS_Package.FILE_END) > 0) {
+                        log.info("XML data received (" + total + ")");
                         break;   
                     }
                     
                 }
-         
-          String s1 = sb.toString();
-          mXML_data =  s1.substring(s1.indexOf(XML_START)+ XML_START.length(), s1.indexOf(XML_END));
+          AGS_Package ap = new AGS_Package (AGS_Package.ContentType.XML, sb.toString());
+          if (ap.HasXMLData()) {
+          mXML_data = ap.data_xml;
           status = agsml.AGS_Server.ClientStatus.READY_XML;
+          } else {
+           throw new Exception();       
+          }
+          
         
          } catch (Exception e) {
              e.printStackTrace(); 
-             mXML_data =  sb.toString();
+            // mXML_data =  sb.toString();
             status = agsml.AGS_Server.ClientStatus.FAIL_XML; 
         }
           
      }
      public void readAGSData(){
         if (!mAGS_fileIN.isEmpty()){
-        setXMLFileSave();
         setAGSData(usingBufferedReader(mAGS_fileIN));
-        System.out.println("AGS data file read (" + mAGS_fileIN + ")");
+        
+        log.info("AGS data file read (" + mAGS_fileIN + ")");
       }
      }
         private static String usingBufferedReader(String filePath) 
@@ -162,23 +240,24 @@ public class AGS_Client extends Thread {
            saveXMLDataToFile();
            saveXMLDataToDatabase();
            
-           status=agsml.AGS_Server.ClientStatus.SAVED_XML;
+           status = agsml.AGS_Server.ClientStatus.SAVED_XML;
        }
        
        private void  saveXMLDataToDatabase () {
            
-        if (mDB_Connect == null) {
+        if (IsEmpty(mDB_Connect) || IsEmpty(mXML_data) || IsEmpty(mDB_StatementXML)) {
             return;
         }
+        
        try { 
            
            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
            Connection m_Conn = DriverManager.getConnection(mDB_Connect);
                     
-           PreparedStatement ps = m_Conn.prepareStatement(mDB_PStatement);
+           PreparedStatement ps = m_Conn.prepareStatement(mDB_StatementXML);
            
             // set the preparedstatement parameters
-            ps.setString(mXML_paramId,mXML_data);
+            ps.setString(mDB_ParamIdXML,mXML_data);
             // call executeUpdate to execute our sql update statement
             ps.executeUpdate();
             ps.close();
@@ -195,7 +274,7 @@ public class AGS_Client extends Thread {
     }
         public void saveXMLDataToFile() {
         
-        if (mXML_fileOUT == null) {
+        if (IsEmpty(mXML_fileOUT) || IsEmpty(mXML_data)) {
             return;
         }
         
@@ -206,17 +285,74 @@ public class AGS_Client extends Thread {
                 out = new BufferedWriter(fstream);
                 out.write(mXML_data);
                 out.close();
-                System.out.println("XML data file written (" + mXML_fileOUT + ")");
+                log.info("XML data file written (" + mXML_fileOUT + ")");
              
                 }   
                 catch (IOException e) {
                 System.err.println("Error: " + e.getMessage());
                 }
     }
-     
-     public void run() {
-        // Open server socket for listening
-        //start listening on the server socket 
+    private void saveAGSData(){
+           
+           saveAGSDataToFile();
+           saveAGSDataToDatabase();
+           
+           status=agsml.AGS_Server.ClientStatus.SAVED_AGS;
+       }
+       
+       private void  saveAGSDataToDatabase () {
+           
+        if (IsEmpty(mDB_Connect) || IsEmpty(mDB_StatementAGS)|| IsEmpty(mAGS_data)) {
+            return;
+        }
+       try { 
+           
+           Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+           Connection m_Conn = DriverManager.getConnection(mDB_Connect);
+                    
+           PreparedStatement ps = m_Conn.prepareStatement(mDB_StatementAGS);
+           
+            // set the preparedstatement parameters
+            ps.setString(mDB_ParamIdAGS,mAGS_data);
+            // call executeUpdate to execute our sql update statement
+            ps.executeUpdate();
+            ps.close();
+           
+       }
+ 
+       catch (Exception ex) {
+         System.out.println(ex.getMessage());
+        ex.printStackTrace();
+       }
+//       catch (FileNotFoundException e) {
+//           
+//       }
+    }
+        public void saveAGSDataToFile() {
+        
+        if (mAGS_fileOUT == null) {
+            return;
+        }
+        
+        BufferedWriter out = null;
+            try  
+                {
+                FileWriter fstream = new FileWriter(mAGS_fileOUT,false); //true tells to append data.
+                out = new BufferedWriter(fstream);
+                out.write(mAGS_data);
+                out.close();
+                log.info("AGS data file written (" + mAGS_fileOUT + ")");
+             
+                }   
+                catch (IOException e) {
+                log.severe (e.getMessage());
+                }
+    } 
+    @Override
+      public void run() {
+                
+        log.info("AGS_Client started on AGS Server " + SERVER_HOSTNAME + ":" + SERVER_PORT); 
+        
         try { 
             while (!isInterrupted()) {  
             
@@ -225,6 +361,10 @@ public class AGS_Client extends Thread {
             }    
             
             if (status == agsml.AGS_Server.ClientStatus.READY_AGS) {
+                 saveAGSData();
+            }
+            
+            if (status == agsml.AGS_Server.ClientStatus.SAVED_AGS) {
                  sendAGSData();
             }
             
@@ -241,44 +381,86 @@ public class AGS_Client extends Thread {
             }
             }
         } catch (Exception e) {
-             e.printStackTrace();
+             log.severe (e.getMessage());
         }
      }
      
+    private void sendAGSData(){
+        sendAGSDataByLine();
+    }
     
-     private void sendAGSData() {
+    private void sendAGSDataByStream(){
+       {
+        try {
+            
+            BufferedOutputStream mSocketWriter = new BufferedOutputStream(socket.getOutputStream()); 
+            
+            AGS_Package ap = new AGS_Package (mAGS_data,mDictionaryFile, mDataStructureSeries);
+            String s1 = ap.getContentsAGS();
+        
+            byte buffer[] = new byte[AGS_Server.MAX_BUFFER_SIZE];
+            int length = 0;
+            int total =0 ;
+
+
+        
+// https://www.programcreek.com/java-api-examples/java.io.BufferedInputStream
+         
+        BufferedInputStream bis = new BufferedInputStream( new ByteArrayInputStream(s1.getBytes(StandardCharsets.UTF_8)));
  
-        StringBuilder sb = new StringBuilder();
-        sb.append(AGS_START);
-        sb.append(System.lineSeparator());
-        sb.append(mAGS_data);
-        sb.append(System.lineSeparator());
-        sb.append(AGS_END);
-        sb.append(System.lineSeparator());
+            while((length = bis.read(buffer)) != -1) {
+                mSocketWriter.write(buffer, 0, length);
+                total =+ length;
+            }
+            
+            mSocketWriter.flush();
+            String msg = "AGS data sent (" + total + ")";
+            //System.out.println(msg);
+          // server.getLogger().info(msg);
+           status = AGS_Server.ClientStatus.SENT_AGS;
+        
+        } catch (Exception e) {
+            log.severe (e.getMessage());
+        }
+
+    } 
+    }
+    
+     private void sendAGSDataByLine() {
+ 
+       try {       
         String line = "";
         int linecount = 0;
-        String s1 = sb.toString();
+        
+        AGS_Package ap = new AGS_Package (mAGS_data,mDictionaryFile, mDataStructureSeries);
+        
+        String s1 = ap.getContentsAGS();
        
         BufferedReader br = new BufferedReader( new StringReader(s1) );
         
-        try {
-            
-         //   while (!isInterrupted()) {   
+        
+        BufferedWriter mSocketWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),"UTF-8")); 
+        
+        //   while (!isInterrupted()) {   
                 while ((line = br.readLine()) != null) { 
                         mSocketWriter.write(line);
                         mSocketWriter.newLine();
                         linecount++;
                 }
-            System.out.println("AGS data sent (" + linecount + ")");
+           log.info("AGS data sent (" + linecount + ")");
             mSocketWriter.flush();
             status = agsml.AGS_Server.ClientStatus.SENT_AGS;
         //    }
             
         } catch (Exception e) {
-            e.printStackTrace();
+           log.severe (e.getMessage());
         }
 
     }
+    private static boolean IsEmpty( final String s ) {
+  // Null-safe, short-circuit evaluation.
+  return s == null || s.trim().isEmpty();
+} 
 }
 
         

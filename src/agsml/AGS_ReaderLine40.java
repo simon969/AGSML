@@ -1,7 +1,7 @@
 package agsml;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 
 /**
@@ -10,50 +10,63 @@ import java.util.logging.Level;
  */
 class AGS_ReaderLine40 extends AGS_Base implements AGS_ReaderLine{
     
-   protected final String HoleTableName = "LOCA";
-   protected final String HoleIdFieldName = "LOCA_ID";  
-   protected final String keyTABLE = "GROUP";
-   protected final String keyHEADER = "HEADING";
-   protected final String keyUNIT = "UNIT";
-   protected final String keyTYPE = "TYPE"; 
-   protected final String keyDATA = "DATA"; 
-   protected final String constDelimiter = "\",\"";
-   private String[] m_read_line_split;
-   private String[] m_read_line_split_data;
-public AGS_ReaderLine40(String fName) {
-    super(fName);
-}
+    protected final String HoleTableName = "LOCA";
+    protected final String HoleIdFieldName = "LOCA_ID";
 
-public String HoleTableName() {
-       return HoleTableName; 
-};
-public String HoleIdFieldName() {
-        return HoleIdFieldName;
-};
-
-public int holecount() {
-    return rowcount(HoleTableName);
-}
-
-public int rowcount(String TableName) {
-   int rowcount = 0; 
-   AGS_ReaderLine.LineType result = FindTable (TableName);
-   if (result==AGS_ReaderLine.LineType.tableName) {
-       //read tableheader
-       result = NextLine();
-       //read tableunits
-       result = NextLine();
-       //read type
-       result = NextLine();
-       //read table data
-       while (NextLine()==AGS_ReaderLine.LineType.rowData) {
-          rowcount++;
-       }
+    protected final String GeolTableName = "GEOL"; 
+    protected final String GeolDepthTOPFieldName = "GEOL_TOP"; 
+    protected final String GeolDepthBASEFieldName = "GEOL_BASE";
+    
+    protected final String keyDepthTOP = "_TOP";
+    protected final String keyDepthBASE = "_BASE";
+    
+    protected final String keyTABLE = "GROUP";
+    protected final String keyHEADER = "HEADING";
+    protected final String keyUNIT = "UNIT";
+    protected final String keyTYPE = "TYPE"; 
+    protected final String keyDATA = "DATA"; 
+    protected final String constDelimiter = "\",\"";
+    private String[] m_read_line_split;
+    private String[] m_read_line_split_data;
+    public AGS_ReaderLine40(String fName) {super(fName);}
+    public String HoleTableName() {return HoleTableName;}
+    public String HoleIdFieldName() {return HoleIdFieldName;}
+    public int holecount() {return rowcount(HoleTableName);}
+    public String GeolTableName() {return GeolTableName;}
+    public int geolcount(){return rowcount(GeolTableName);}
+    public String GeolDepthTOPFieldName(){return GeolDepthTOPFieldName;}
+    public String GeolDepthBASEFieldName(){return GeolDepthBASEFieldName;}
+    public int get_col_depthTOP() { return m_row.col_depthTOP;}
+    public int get_col_depthBASE(){ return m_row.col_depthBASE;}
+    public int get_col_HoleId(){ return m_row.col_holeid;}
+    public String getAGSVersion(){return "AGS4.0";}
+            
+    public int rowcount(String TableName) {
+        int rowcount = 0; 
+        AGS_ReaderLine.LineType result = FindTable (TableName);
+        
+        if (result==AGS_ReaderLine.LineType.tableName) {
+            result = NextLine();
+            while (true) {
+            if (result == AGS_ReaderLine.LineType.tableName) {
+                break;
+            }
+            if (result == AGS_ReaderLine.LineType.EOF) {
+                break;
+            } 
+            if (result == AGS_ReaderLine.LineType.rowData) { 
+                rowcount++;
+            }
+    
+            result =  NextLine();
+            }
+        }
+        return rowcount; 
+    }
+  public int get_col (String s1) {
+    return m_row.FindColumn(s1);
    }
-   return rowcount; 
-}
-
-public AGS_ReaderLine.LineType NextLine (){
+@Override public AGS_ReaderLine.LineType NextLine (){
  try {
             AGS_ReaderLine.LineType retval = AGS_ReaderLine.LineType.Empty;
             m_read_line = m_next_line;
@@ -69,12 +82,12 @@ public AGS_ReaderLine.LineType NextLine (){
             return retval;
  }
  catch (Exception e) {
-     m_log.log(Level.SEVERE, e.getMessage());
+     log.log(Level.SEVERE, e.getMessage());
      return AGS_ReaderLine.LineType.Error;
  }
 }
 
-public AGS_ReaderLine.LineType ReadLine (){
+@Override public AGS_ReaderLine.LineType ReadLine (){
     
         AGS_ReaderLine.LineType retval = AGS_ReaderLine.LineType.Empty;
         
@@ -99,8 +112,7 @@ public AGS_ReaderLine.LineType ReadLine (){
         }  
         catch (Exception e) {
         // catch possible io errors from readLine()
-        System.out.println("Uh oh, got an IOException error!");
-        e.printStackTrace();
+        log.severe(e.getMessage());
         retval = AGS_ReaderLine.LineType.Error;
         }
 
@@ -112,6 +124,7 @@ public AGS_ReaderLine.LineType ReadLine (){
         if (containsDATA()) {retval = AGS_ReaderLine.LineType.rowData;}
         if (containsHEADER()) {retval = AGS_ReaderLine.LineType.tableHeader;}
         if (containsTABLENAME()) {retval = AGS_ReaderLine.LineType.tableName;}
+        if (containsTYPE()) {retval = AGS_ReaderLine.LineType.tableType;}
         if (containsUNITS()) {retval = AGS_ReaderLine.LineType.tableUnits;}
         return retval;
     }
@@ -131,11 +144,89 @@ public AGS_ReaderLine.LineType ReadLine (){
  private boolean containsTYPE() {return read_line_split_contains(keyTYPE,0);}
  private boolean containsTABLENAME() {return read_line_split_contains(keyTABLE,0);}
  
+    private boolean isFieldHoleId(String s1) {
+        if (s1 == HoleIdFieldName) {
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isFieldDepthTOP(String s1) {
+        if (s1.equalsIgnoreCase(m_tablename + keyDepthTOP)) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("CHOC_FROM")) {
+             return false;
+        }
+        if (s1.equalsIgnoreCase(m_tablename + "_FROM")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase(m_tablename + "_DPTH")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("SAMP_TOP")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("WSTG_DPTH")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("MONG_DIS")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("IPRG_TOP")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("MONG_TRZ")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("MONG_DIS")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("PMTG_DPTH")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("SCDG_DPTH")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("WSTG_DEP")) {
+             return true;
+        }
+        return false;       
+    }
+    
+    private boolean isFieldDepthBASE(String s1) {
+        if (s1.equalsIgnoreCase(m_tablename + keyDepthBASE)) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("SAMP_BASE")) {
+             return true;
+        }
+        if (s1.equalsIgnoreCase("CHOC_TO")) {
+             return false;
+        }
+        if (s1.equalsIgnoreCase(m_tablename + "_TO")) {
+             return true;
+        }
+        return false;  
+    }
  private int readHEADER() {
     try {
         if (m_read_line_split[0].equals(keyHEADER)) {
             get_read_line_split_data();
-            m_row = new Header (m_read_line_split_data);
+            m_row = new AGS_Header (m_read_line_split_data);
+            for (int i = 1; i< m_row.columnIN().size();i++) {
+             String fname = m_row.m_columnsIN.get(i);
+                if (isFieldHoleId(fname)) {
+                       m_row.setHoleId_fieldName(fname, i);
+                    }
+                    if (isFieldDepthBASE(fname)) {
+                       m_row.setDepthBASE_fieldName(fname, i);
+                    }
+                    if (isFieldDepthTOP(fname)) {
+                       m_row.setDepthTOP_fieldName(fname, i);
+                    }
+            } 
+                    
             return m_row.columnIN().size();
         } 
     return -1;
@@ -201,6 +292,9 @@ public AGS_ReaderLine.LineType FindTable(String s1){
         String s2;
         do {
               result = NextTable();
+              if (result!=AGS_ReaderLine.LineType.tableName) {
+                 return result; 
+              }
               readTABLENAME();
               s2 = get_tablename();
               if (s2 != null) {
@@ -211,15 +305,20 @@ public AGS_ReaderLine.LineType FindTable(String s1){
         } while (result != AGS_ReaderLine.LineType.Error && result != AGS_ReaderLine.LineType.EOF);
         return result;
     }
-public Collection<String> get_headers(){return m_row.columnINCollection();}
-public Collection<String> get_units() {return m_row.unitsCollection();}
-public Collection<String> get_data() {return m_row.dataCollection();}
+public List<String> get_headers(){return m_row.m_columnsIN;}
+public List<String> get_units() {return m_row.m_units;}
+public List<String> get_data() {return m_row.m_data;}
 public String get_tablename() {return m_tablename;} 
-public AGS_ReaderLine Copy() {
+public AGS_ReaderLine40 Copy() {
       AGS_ReaderLine40 lr1  =  new AGS_ReaderLine40(DataSource());
       return lr1;
 }
-
+public AGS_ReaderLine40 Copy (String HoleId) {
+        AGS_ReaderLine40 lr1  =  new AGS_ReaderLine40(DataSource());
+        String hole_ags = lr1.getAllDataForHole(HoleId);
+        AGS_ReaderLine40 lr2  =  new AGS_ReaderLine40(hole_ags);
+        return lr2;
+    }     
 private void get_read_line_split(boolean RemoveQuotesFirstandLast, boolean RemoveQuotesAllOtherItems) {
  try {   
     m_read_line_split = m_read_line.split(constDelimiter);

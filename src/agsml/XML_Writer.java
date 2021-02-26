@@ -80,7 +80,7 @@ class XML_Writer  extends Base_Writer {
         String s1 = n1.getTextContent();
         setOutputFile(s1);
         setStyleSheet(n1);
-        return openFile(true);
+        return openFile(true, false);
      }
 //    protected int openFile(String fout, Node DataStructureNode) {
 //       setOutputFile(fout);
@@ -91,18 +91,18 @@ class XML_Writer  extends Base_Writer {
    
     try {
         
-      Node n1 =  m_ds.m_root;
+      Node n1 =  m_ds.RootNode();
       Process(n1);
      
     } catch (Exception e) {
         
     }
     }
-    protected int openFile(boolean overwrite) {
+    protected int openFile(boolean overwrite, boolean datestamp) {
         
     try {
         
-        this.closeFile();
+        // this.closeFile();
         
         File file = new File(fileOut());
       
@@ -114,9 +114,9 @@ class XML_Writer  extends Base_Writer {
              if (file.exists() && overwrite == true) {
                     file.delete();
                 }
-           if (newFile()>0) {
+           if (newFile(overwrite, datestamp)>0) {
              AddVersionAndStyleSheet();
-             m_log.info("File " + fileOut() + " opened");   
+             log.info("File " + fileOut() + " opened");   
            }
        } 
         
@@ -151,7 +151,7 @@ class XML_Writer  extends Base_Writer {
   
   if (n1.getNodeType() == Node.ELEMENT_NODE) {
         String s1 = n1.getNodeName(); 
-        if(s1.equals (m_ds.DataStructureAGSML))
+        if(s1.equals (Constants.AGS_DATASTRUCTURE))
             retvar = true;
         } else {
             retvar = false;
@@ -172,26 +172,28 @@ class XML_Writer  extends Base_Writer {
        
    }
    
-   private XML_Writer(String fout, boolean overwrite)  {
+   private XML_Writer(String fout, boolean overwrite, boolean datestamp)  {
        this();
        setOutputFile(fout);
-       openFile (overwrite);
+       openFile (overwrite, datestamp);
    }
     public XML_Writer(String fout) {
         this();
         setOutputFile(fout);
-        openFile (true);
+        openFile (true, false);
     } 
     public XML_Writer(String fileout, String stylesheet) {
         this();
         setOutputFileFolder(fileout);
         setStyleSheet(stylesheet);
-        openFile (true);
+        openFile (true, false);
     } 
-    protected int newFile()  {
+    protected int newFile(boolean overwrite , boolean datestamp)  {
        try {
            // Close file if alreday open'
            // Initialise and open new bufferwe writer and stringbuilder
+            String newFileName = getFileName(fileOut(), overwrite, datestamp);
+            setOutputFile(newFileName);
             m_bw = new BufferedWriter(new FileWriter(fileOut()));
             
             if (fieldOut().length() > 0) {
@@ -202,10 +204,8 @@ class XML_Writer  extends Base_Writer {
             }
         catch (IOException e) {
         // catch possible io errors from readLine()
-        System.out.println("Uh oh, got an IOException error!");
-        e.printStackTrace();
-        m_log.log(Level.SEVERE, e.getMessage()); 
-        m_log.exiting("XMLWriter", fileOut());
+        log.log(Level.SEVERE, e.getMessage()); 
+        log.exiting("XMLWriter", fileOut());
         return -1;
     }
             
@@ -215,7 +215,7 @@ class XML_Writer  extends Base_Writer {
             return setStyleSheet(m_ds.RootNode());
         }
         catch (Exception e) {
-        m_log.log(Level.SEVERE, e.getMessage());
+        log.log(Level.SEVERE, e.getMessage());
         return "";
         }
     }
@@ -244,8 +244,7 @@ class XML_Writer  extends Base_Writer {
         
         catch ( Exception e ) {
             // catch possible io errors from readLine()
-        System.out.println("Uh oh, got an IOException error!");
-        e.printStackTrace()  ;
+        log.severe(e.getMessage());
         return null;
         }
    }
@@ -272,8 +271,7 @@ class XML_Writer  extends Base_Writer {
         
         catch (IOException e) {
         // catch possible io errors from readLine()
-        System.out.println("Uh oh, got an IOException error!");
-        e.printStackTrace();
+        log.severe(e.getMessage());
         }
     }
     public void add(String s, boolean boolAddToString){
@@ -289,8 +287,7 @@ class XML_Writer  extends Base_Writer {
         
         catch (IOException e) {
         // catch possible io errors from readLine()
-        System.out.println("Uh oh, got an IOException error!");
-        e.printStackTrace();
+       log.severe (e.getMessage());
         }
     }
     public void addNodeAttrib(String elName, String elValue) {
@@ -369,18 +366,17 @@ class XML_Writer  extends Base_Writer {
         try {
             if (m_bw != null) {
             m_bw.close();
-            m_log.info("File " + fileOut() + " closed");  
+            log.info("File " + fileOut() + " closed");  
             }
         } catch (IOException e) {
         // catch possible io errors from readLine()
-        System.out.println("Uh oh, got an IOException error!");
-        e.printStackTrace();
+        log.severe (e.getMessage());
         }
 }
  
     
     
-protected Node Process(Node n1, String hole_id){
+protected Node Process(Node n1, String hole_id, Double depth_top, Double depth_base){
  return null;
 }
 protected boolean IsHoleInList(String hole_id) {
@@ -406,10 +402,10 @@ protected boolean ContainsSpecialCharacters(String s1) {
       Matcher m = p.matcher(s1);
  
       if (!m.matches()) {
-          m_log.log(Level.INFO, "string '" + s1 + "' contains special character");
+          log.log(Level.INFO, "string '" + s1 + "' contains special character");
            return true;
       } else {
-            m_log.log(Level.INFO, "string '" + s1 + "' doesn't contains special character");
+            log.log(Level.INFO, "string '" + s1 + "' doesn't contains special character");
            return false;
       }
   }
@@ -580,45 +576,42 @@ protected boolean IsAGSTable(String xml_tname, String IgnoreTables){
 //        return l;
 // }
 // catch (Exception e) {
-////     m_log(Level.SEVERE, e.getMessage());      
+////     log(Level.SEVERE, e.getMessage());      
 //     return null;
 // }
 //}
 
-protected List<String> convertHeaderXML(Collection header1, String tname1, AGS_Dictionary.Lang lang) {
+protected List<String> convertHeaderXML(Collection header1, String tname1, agsml.Constants.Lang lang) {
  try {
      
         List<String> l;
         Iterator it;
         String fname1;
         String fname2;
-        boolean TableFound = false;
-        boolean FieldFound = false;
-        
+        boolean foundTable;
+              
         l = new ArrayList<String>();
         it = header1.iterator();
         
-        TableFound = (m_dic.find_table(tname1, lang) != null );
+        foundTable = (m_dic.find_table(tname1, lang) != null);
                 
         do {
+      
             fname1 = it.next().toString();
-            fname2 = fname1;
-            if (TableFound) {
-                FieldFound = (m_dic.find_field(fname1, lang) != null);
-                    if (FieldFound) {
-                        fname2 = m_dic.fieldXML_name();
-                    } else { 
-                        fname2 = m_dic.format_XMLTry(tname1, fname2);
-                    }
+            fname2 = "";
+            if (foundTable && m_dic.find_field(fname1, lang) != null) {
+                fname2 = m_dic.fieldXML_name();
+            } else { 
+                fname2 = m_dic.format_XMLTry(tname1, fname1);
             }
+            l.add(fname2);
             
-        l.add(fname2);
         } while(it.hasNext());
 
         return l;
  }
  catch (Exception e) {
-//     m_log(Level.SEVERE, e.getMessage());      
+//     log(Level.SEVERE, e.getMessage());      
      return null;
  }
 }

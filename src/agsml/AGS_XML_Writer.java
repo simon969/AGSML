@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.ArrayList;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.NamedNodeMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -25,9 +26,8 @@ import java.util.logging.Logger;
 
 class AGS_XML_Writer extends XML_Writer implements Converter{
     private AGS_ReaderLine m_lr;
-    
-    public final String AGS_DATASTRUCTURETYPE = "Type";
-    public final String AGS_DATAQUERY = "DataQueryAGSML";
+    private String rootNode; 
+  
      
 public AGS_XML_Writer (BufferedWriter bw ){
  super (bw);
@@ -49,7 +49,7 @@ public int getAGSDictionary() {
    }
 }
         
-public int setReader (Object lr1) {
+public int setAGSReader (Object lr1) {
     if (lr1.getClass().isInstance(AGS_ReaderLine.class)) {
      m_lr = (AGS_ReaderLine)lr1; 
      return 1;
@@ -136,13 +136,20 @@ public int getAGSReader() {
     try {
         
         String s1 =  getProperty(AGS_DATASOURCE);
-        AGS_Dictionary.AGSVersion ags1 = m_dic.getAGSVersion();
+        Constants.AGSVersion ags1 = m_dic.getAGSVersion();
 
         switch (ags1) {
-            case AGS30: case AGS31: case AGS31a:
+            
+            case AGS30: 
+            case AGS31: 
+            case AGS31a:
             m_lr = new AGS_ReaderLine31 (s1);
-            case AGS404: case AGS403:
+            break;
+            
+            case AGS404: 
+            case AGS403:
             m_lr = new AGS_ReaderLine40 (s1);
+            break;
         }
         
         return ags1.toInt();
@@ -158,18 +165,10 @@ public void Process() {
    
     try {
         
-      Node n1 =  m_ds.m_root;
-      if (n1.getNodeType() == Node.ELEMENT_NODE) {
-            String s1 = n1.getNodeName();
-            Node n2 = n1.getFirstChild();
-            openNode (s1);
-            if (n2 != null) {
-                    Process(n2);
-            }
-            closeNode();
-      }
+      Process(m_ds.m_root);
+//      
     } catch (Exception e) {
-        
+        log.log(Level.SEVERE, e.getMessage()); 
     }
 }
 
@@ -180,13 +179,13 @@ public void Process(Node n1) {
       boolean NodeProcessed = false;
       
       if (folderOut().isEmpty() && fileOut().isEmpty()) {
-         Process (n1,null);
+         Process (n1,null,null,null);
          NodeProcessed = true;
       }
      
      if (folderOut().isEmpty() && !fileOut().isEmpty()) {
-         openFile(true);
-         Process (n1,null);
+         openFile(true, false);
+         Process (n1,null,null,null);
          closeFile();
          NodeProcessed = true;
      }
@@ -220,14 +219,14 @@ public void Process(Node n1) {
                 hole_id = getData(ags_header, data, lr.HoleIdFieldName()); 
                 if (IsHoleInList(hole_id) && ContainsSpecialCharacters(hole_id) == false) {
                      count++;
-                     m_log.log(Level.INFO, "Processing " + hole_id + " (" + count +" of " + hole_count + " holes)");
+                     log.log(Level.INFO, "Processing " + hole_id + " (" + count +" of " + hole_count + " holes)");
                      m_onlyHoleId = hole_id;
                      setOutputFile (folderOut() + "\\" + hole_id + ".xml");
-                     openFile(true);
-                     Process (n1,null);
+                     openFile(true, false);
+                     Process (n1,null,null,null);
                      closeFile();
                      m_onlyHoleId = "";
-                     m_log.info("File " + fileOut() + " created ");  
+                     log.info("File " + fileOut() + " created ");  
                 }
              
             }
@@ -242,84 +241,227 @@ public void Process(Node n1) {
      }
   }
   catch (Exception e) {
-      m_log.log(Level.SEVERE, e.getMessage());
+      log.log(Level.SEVERE, e.getMessage());
   }   
 }
-protected Node Process(Node n1, String hole_id){
- try {
-    String s1 = null;
-    String ntype = null;
+protected int addGeols(Node n1, String hole_id) {
+   try {
+               
+        AGS_ReaderLine.LineType result;
+        int count = 0;
+        int geol_count = 0;
+        String s1 = "";
+        
+        Double geol_depthTOP = null;
+        Double geol_depthBASE = null;
+        
+        int  col_depthTOP = -1;
+        int col_depthBASE = -1;
+        
+        List<String> ags_header = null;
+        List<String> data = null;
+        List<String> xml_header = null;
+        
+        Node n2 = null;
+        
+        AGS_ReaderLine lr1 = m_lr.Copy();
+        geol_count = lr1.geolcount();
+        
+        AGS_ReaderLine lr = m_lr.Copy();
+        result = lr.FindTable(lr.GeolTableName());
+       
+       
+        if (result == AGS_ReaderLine.LineType.Error) {
+            return -1;
+        } 
 
-    boolean IsAGSTable;
-    boolean ChildNodesProcessed = false;
+        if (n1.hasChildNodes() == true)  { 
+            NodeList list = n1.getChildNodes();
+            n2 = list.item(1);
+            
+        }
+        
+        String ags_fname = lr.HoleIdFieldName();
+         
+        do {
+            result =  lr.NextLine();
+            
+            if (result == AGS_ReaderLine.LineType.tableHeader) {
+            lr.ReadLine();                  
+            ags_header = lr.get_headers();
+            xml_header = convertHeaderXML(ags_header,lr.GeolTableName(),agsml.Constants.Lang.AGS);
+            col_depthTOP = lr.get_col_depthTOP();
+            col_depthBASE = lr.get_col_depthBASE();
+            }
+            
+            if (result == AGS_ReaderLine.LineType.rowData) {
+            lr.ReadLine();
+            data = lr.get_data();
+            s1 = getData(ags_header, data, ags_fname);
+                if (s1.equalsIgnoreCase(hole_id)) {
+                    geol_depthTOP = Double.parseDouble(data.get(col_depthTOP));
+                    geol_depthBASE = Double.parseDouble(data.get(col_depthBASE));
+                    openNode ("Geol");
+                        addRow (xml_header, data, false);
+                        if (n2 != null) {
+                            count++;
+                            log.log(Level.INFO, "Processing " + hole_id + " depth(" + geol_depthTOP + "-" + geol_depthBASE + ")");
+                            Process (n2, hole_id, geol_depthTOP, geol_depthBASE);
+                        }
+                    closeNode();
+                }
+            }
+            } while ((result != AGS_ReaderLine.LineType.tableName) && (result != AGS_ReaderLine.LineType.Error) && (result != AGS_ReaderLine.LineType.EOF));
+          
+        return count;
+    }
+    
+    catch (Exception e) {
+        log.log(Level.SEVERE, e.getMessage());
+        return -1;
+    }
+}  
+                   
+    
+
+
+protected void addSamples(String hole_id, Double depth_top, Double depth_base ) {
+    
+}
+protected Node Process(Node n1, String hole_id) {
+    return Process(n1,hole_id,null,null);
+}
+protected Node Process(Node n1, String hole_id, Double depth_top, Double depth_base){
+ try {
+
+
     
     do {
            if (n1.getNodeType() == Node.ELEMENT_NODE) {
                
-                s1 = n1.getNodeName();
-              
-                ntype = getAttributeValue( n1, "type");
+                String s1 = n1.getNodeName();
+                String ntype = "";
+                String ags_table = "";
+
+                boolean IsAGSTable = false;
+                boolean ChildNodesProcessed = false;
+                boolean ForEach = false;
+    
+                NamedNodeMap n1_attrib = n1.getAttributes();
                 
-                IsAGSTable = IsAGSTable(s1);
-                 
-                if (IsAGSTable == false) {
-                    openNode (s1);
+                for (int i = 0; i < n1_attrib.getLength(); ++i)
+                {
+                    Node attr = n1_attrib.item(i);
+                    
+                    if (attr.getNodeName().equalsIgnoreCase(Constants.AGS_DATASTRUCTURE_NODETYPE)) {
+                        ntype = attr.getNodeValue();
+                    }
+                    
+                    if (attr.getNodeName().equalsIgnoreCase(Constants.AGS_DATATSTRUCTURE_REPEAT_ATTR)) {
+                        ForEach = getBoolean(attr.getNodeValue());
+                    }
+                    
+                    if (attr.getNodeName().equalsIgnoreCase(Constants.AGS_ATTRIBUTE_AGSVERSION)) {
+                        String ags_version = attr.getNodeValue();
+                            if (ags_version.equalsIgnoreCase("$AGS_VERSION")) {
+                                ags_version = m_lr.getAGSVersion();
+                            }
+                        this.addNodeAttrib(Constants.AGS_ATTRIBUTE_AGSVERSION, ags_version);
+                    }
+                    if (attr.getNodeName().equalsIgnoreCase(Constants.AGS_ATTRIBUTE_SERIES)) {
+                        String ags_series = attr.getNodeValue();
+                        this.addNodeAttrib(Constants.AGS_ATTRIBUTE_SERIES, ags_series);
+                    }
+                    if (attr.getNodeName().equalsIgnoreCase(Constants.AGS_ATTRIBUTE_AGSTABLE)) {
+                        ags_table = attr.getNodeValue();
+                    }
                 }
                 
-                if (s1.equals("Proj") && hole_id == null) {
+               IsAGSTable = IsAGSTable(s1);
+                
+               if (!IsAGSTable && ags_table.isEmpty()) {
                     openNode(s1);
-                    addTable (s1, null, null, false);
                     if (n1.hasChildNodes() == true) {
-                        NodeList list = n1.getChildNodes();
-                        Node n2 = list.item(0); 
-                        Process(n2, hole_id);
+                        Node n2 = n1.getFirstChild();
+                        Process(n2, hole_id, null, null);
+                    }
+                    closeNode();
+                    ChildNodesProcessed = true;
+                } else {
+                    ags_table = s1;
+                }
+                
+                
+                
+                if (ags_table.equals(Constants.AGS_DATATSTRUCTURE_PROJ_NODE) && hole_id == null && ForEach==true) {
+                    openNode(s1);
+                    addTable (ags_table, false);
+                    if (n1.hasChildNodes() == true) {
+                        Node n2 = n1.getFirstChild();
+                        Process(n2, null, null, null);
                     }
                     closeNode();
                     ChildNodesProcessed = true;
                 }
                 
-                if (s1.equals("Proj") && hole_id != null) {
-                    addTable (s1, null, null, true);
+                if (ags_table.equals(Constants.AGS_DATATSTRUCTURE_PROJ_NODE) && ForEach==false) {
+                    addTable (ags_table,  true);
                 }
-                 
-                if (s1.equals("Hole") && hole_id == null) {
+                if (ags_table.equals(Constants.AGS_DATATSTRUCTURE_ABBR_NODE)) {
+                    addTable (ags_table, true);
+                }
+                if (ags_table.equals(Constants.AGS_DATATSTRUCTURE_UNIT_NODE)) {
+                    addTable (ags_table, true);
+                }
+                if (ags_table.equals(Constants.AGS_DATATSTRUCTURE_CODE_NODE)) {
+                    addTable (ags_table, true);
+                }
+                if (ags_table.equals(Constants.AGS_DATATSTRUCTURE_HOLE_NODE) && hole_id == null && ForEach == true) {
                     addHoles(n1);
                     ChildNodesProcessed = true;
                 }
                 
-                if (ntype.equals("DataQueryAGSML")) {
+                if (ags_table.equals(Constants.AGS_DATATSTRUCTURE_GEOL_NODE) && hole_id != null && ForEach == true) {
+                    //Add tables by geol depths
+                    addGeols(n1, hole_id);
+                    ChildNodesProcessed = true;
+                }
+                
+                if (ntype.equals(Constants.AGS_DATAQUERY)) {
                     processQueryNode(n1);
                 }                                    
                 
-                if (s1.equals("DataQueryKML")) {
+                if (s1.equals(Constants.AGS_DATAQUERY_KML)) {
                     processKMLNode(n1);
                 }  
                 
-                if (IsAGSTable == true && hole_id != null && s1.equals("Proj") == false) {
-                    addTable (s1, "HoleId", hole_id, true);
-                    // m_log.log(Level.INFO ,"["+ hole_id + "][" + s1 +"]") ;
+                if (IsAGSTable == true && hole_id != null && ags_table.equals(Constants.AGS_DATATSTRUCTURE_PROJ_NODE) == false && ChildNodesProcessed == false) {
+                    addTable (ags_table, Constants.AGS_HOLEID, hole_id, depth_top, depth_base, true);
+                    // log.log(Level.INFO ,"["+ hole_id + "][" + s1 +"]") ;
                 }
-                
+                if (IsAGSTable == true && hole_id == null && ChildNodesProcessed == false) {
+                    addTable (ags_table, true);
+                    // log.log(Level.INFO ,"["+ hole_id + "][" + s1 +"]") ;
+                }
                 if (n1.hasChildNodes() == true && ChildNodesProcessed==false) {
-                            NodeList list = n1.getChildNodes();
-                            Node n2 = list.item(0); 
-                            Process(n2, hole_id);
+                            Node n2 = n1.getFirstChild();
+                            Process(n2, hole_id, null, null);
                 }
-                
-                if (IsAGSTable == false) {
-                    closeNode();
-                }
+ 
         }
-      
-           n1 = n1.getNextSibling();
-      
-      
+        
+        
+        if (n1.equals(m_ds.m_root)) {
+            break;   
+        } else {        
+        n1 = n1.getNextSibling();
+        }
      } while (n1 != null);
-   // while (n1 != null );
+ 
     return n1;
    
  } catch (Exception e) {
-     m_log.log(Level.SEVERE, e.getMessage());
+     log.log(Level.SEVERE, e.getMessage());
      return n1;
  }
 }
@@ -334,7 +476,7 @@ public void AGS_to_AGSML(AGS_ReaderLine lr1){
         
         if (folderOut().isEmpty()) {
      
-         Process (n1,null);
+         Process (n1);
      
      } else { 
      
@@ -352,7 +494,7 @@ public void AGS_to_AGSML(AGS_ReaderLine lr1){
        
             if (result ==  AGS_ReaderLine.LineType.tableHeader) {
                 ags_header = lr.get_headers();
-                xml_header = convertHeaderXML(ags_header,lr.HoleTableName(),AGS_Dictionary.Lang.AGS);
+                xml_header = convertHeaderXML(ags_header,lr.HoleTableName(),agsml.Constants.Lang.AGS);
             }
      
             if (result ==  AGS_ReaderLine.LineType.rowData) {
@@ -365,14 +507,14 @@ public void AGS_to_AGSML(AGS_ReaderLine lr1){
                     
                     setOutputFile(folderOut() + "\\" + hole_id + ".xml");
             
-                    openFile(true);
+                    openFile(true,false);
             
-                    Process (n1, null);
+                    Process (n1, null, null, null);
             
                     closeFile();
       
                     m_onlyHoleId = "";
-                    m_log.info("File " + fileOut() + " created ");  
+                    log.info("File " + fileOut() + " created ");  
                 }
              
             }
@@ -383,20 +525,50 @@ public void AGS_to_AGSML(AGS_ReaderLine lr1){
       
   }
 }
-
-
-protected int addTable(String xml_tname, String xml_fname, String fvalue, boolean OpenCloseTags){
+protected boolean IsDataWithinDepths(List<String> data, int col_depth, Double depthTOP, Double depthBASE) {
     try {
-            Collection<String> data = null;
-            Collection<String> ags_header = null;
-            Collection<String> xml_header = null;
+        Double data_depth = null;
+        
+        if (depthTOP == null || depthBASE == null) {
+            return false;
+        }
+        
+        if (col_depth > 0 ) {
+          data_depth = Double.parseDouble(data.get(col_depth));
+            if (data_depth>=depthTOP && data_depth <=depthBASE) {
+              return true;
+            } else {
+                return false;
+            }
+        } else { 
+         return false;
+        }
+    }
+    catch (Exception e) {
+        log.log(Level.SEVERE, e.getMessage());
+        return false;
+    }
+} 
+protected int addTable (String xml_tname, boolean OpenCloseTags) {
+    return addTable (xml_tname, null, null, null, null, OpenCloseTags);
+}
+protected int addTable (String xml_tname, String xml_fname, String fvalue, boolean OpenCloseTags) {
+    return addTable (xml_tname, xml_fname, fvalue,null,null, OpenCloseTags);
+}
+protected int addTable(String xml_tname, String xml_fname, String fvalue, Double depthTOP, Double depthBASE, boolean OpenCloseTags){
+    try {
+            List<String> data = null;
+            List<String> ags_header = null;
+            List<String> xml_header = null;
             AGS_ReaderLine.LineType result = AGS_ReaderLine.LineType.Empty;
             int row_count = 0;
             String s1;
             String ags_fname= null;
             String ags_tname=null;
             AGS_ReaderLine lr1;
-
+            int col_depthTOP = 0;
+            int col_depthBASE = 0;
+            
             lr1 = m_lr.Copy();
             
             if (m_dic.find_tableXML(xml_tname) != null)  {
@@ -412,7 +584,8 @@ protected int addTable(String xml_tname, String xml_fname, String fvalue, boolea
             }
 
             result = lr1.FindTable(ags_tname);
-
+            
+                       
             if (result.equals(AGS_ReaderLine.LineType.tableName )){
              //Move line pointer off table name and into table
              result = lr1.NextLine(); 
@@ -421,43 +594,60 @@ protected int addTable(String xml_tname, String xml_fname, String fvalue, boolea
                         if (result.equals(AGS_ReaderLine.LineType.tableHeader)) {
                             lr1.ReadLine();
                             ags_header = lr1.get_headers();
-                            xml_header = convertHeaderXML( ags_header, ags_tname,AGS_Dictionary.Lang.AGS);
+                            xml_header = convertHeaderXML( ags_header, ags_tname,agsml.Constants.Lang.AGS); 
+                            if (depthTOP !=null && depthBASE !=null) {
+                                col_depthTOP = lr1.get_col_depthTOP();
+                                col_depthBASE = lr1.get_col_depthBASE();
+                            }
                         }
                         if (result.equals(AGS_ReaderLine.LineType.tableUnits)){
 
                         }
+                        
                         if (result.equals(AGS_ReaderLine.LineType.rowData)){
                             lr1.ReadLine();
                             data = lr1.get_data();
-                            if (ags_fname == null) {
-                                    if (OpenCloseTags) openNode (xml_tname);
-                                    addRow(xml_header, data, false);
-                                    if (OpenCloseTags) closeNode();
-                                    row_count++;
+                            
+                                if (ags_fname == null) {
+                                        if (OpenCloseTags) openNode (xml_tname);
+                                        addRow(xml_header, data, false);
+                                        if (OpenCloseTags) closeNode();
+                                        row_count++;
 
-                            } else {
-                                s1 = getData(ags_header, data, ags_fname);
-                                if (fvalue.equals(s1)){
-                                    if (OpenCloseTags) openNode (xml_tname);
-                                    addRow(xml_header, data, false);
-                                    if (OpenCloseTags) closeNode();
-                                    row_count++;
+                                } else {
+                                    s1 = getData(ags_header, data, ags_fname);
+                                    if (fvalue.equals(s1)){
+                                        if (depthTOP!=null && depthBASE!=null){
+                                            if (IsDataWithinDepths(data, col_depthTOP, depthTOP, depthBASE)) {
+                                                if (OpenCloseTags) openNode (xml_tname);
+                                                    addRow(xml_header, data, false);
+                                                if (OpenCloseTags) closeNode();
+                                                row_count++;
+                                            }
+                                        } else {
+                                         
+                                          if (OpenCloseTags) openNode (xml_tname);
+                                                    addRow(xml_header, data, false);
+                                                if (OpenCloseTags) closeNode();
+                                                row_count++;  
+                                        }
+                                            
+                                    }
+
                                 }
-
-                            }
-
+                              
                         }
                     result = lr1.NextLine();
                     //Keep cycling until next table name hit or EOF 
                     } while ((result != AGS_ReaderLine.LineType.tableName) && (result != AGS_ReaderLine.LineType.Error) && (result != AGS_ReaderLine.LineType.EOF));
                 }
             if (row_count> 0) {
-            m_log.fine( fvalue + " "  + xml_tname + " (" + String.valueOf(row_count) + ") rows");
+            log.finest( fvalue + " "  + xml_tname + " (" + String.valueOf(row_count) + ") rows");
             }
             return row_count;
             } 
     catch (Exception e ) {
-        m_log.log(Level.SEVERE, e.getMessage());
+        log.log(Level.SEVERE, e.getMessage());
         return -1;
     
     }
@@ -476,60 +666,74 @@ protected int addHoles(Node n1) {
         String hole_id = null;
         Node n2 = null;
         
-        AGS_ReaderLine lr1 = m_lr.Copy();
-        hole_count = lr1.holecount();
+        // take a copy of the current linereader so it can be reset at the end
+        AGS_ReaderLine lr_full = m_lr.Copy();
         
-        AGS_ReaderLine lr = m_lr.Copy();
-        result = lr.FindTable(lr.HoleTableName());
+        hole_count = lr_full.holecount();
+        
+        // take another copy to cycle through the holetable
+        AGS_ReaderLine lr_holes = m_lr.Copy();
+        result = lr_holes.FindTable(lr_holes.HoleTableName());
 
+        if (result == AGS_ReaderLine.LineType.EOF) {
+           // No hole table found
+            return 0;
+        } 
         if (result == AGS_ReaderLine.LineType.Error) {
+            // Error finding hole table
             return -1;
         }
-
+        
         if (n1.hasChildNodes() == true)  { 
             NodeList list = n1.getChildNodes();
             n2 = list.item(1);
         }
 
         do {
-            result =  lr.NextLine();
+            result =  lr_holes.NextLine();
             
             if (result == AGS_ReaderLine.LineType.tableHeader) {
-            lr.ReadLine();                  
-            ags_header = lr.get_headers();
-            xml_header = convertHeaderXML(ags_header,lr.HoleTableName(),AGS_Dictionary.Lang.AGS);
+            lr_holes.ReadLine();                  
+            ags_header = lr_holes.get_headers();
+            xml_header = convertHeaderXML(ags_header,lr_holes.HoleTableName(),agsml.Constants.Lang.AGS);
             }
             
             if (result == AGS_ReaderLine.LineType.rowData) {
-            lr.ReadLine();
-            data = lr.get_data();
-            hole_id = getData(ags_header, data, lr.HoleIdFieldName());
+            lr_holes.ReadLine();
+            data = lr_holes.get_data();
+            hole_id = getData(ags_header, data, lr_holes.HoleIdFieldName());
             holeInList = IsHoleInList(hole_id);
             
                  if (holeInList) {
-                   addNodeAttrib("id",hole_id);
+                    // set m_lr to contain data only for holeid
+                    m_lr = lr_full.Copy(hole_id);
+                    addNodeAttrib("id",hole_id);
                      openNode ("Hole");
                         addRow (xml_header, data, false);
                         if (n2 != null) {
                             count++;
-                            m_log.log(Level.INFO, "Processing " + hole_id + " (" + count +" of " + hole_count + " holes)");
-                            Process (n2, hole_id);
+                            log.log(Level.INFO, "Processing " + hole_id + " (" + count +" of " + hole_count + " holes)");
+                            Process (n2, hole_id, null, null);
                         }
                     closeNode();
                   }
             }
         }  while (result != AGS_ReaderLine.LineType.tableName);
+        
+        //reset agslinereader to full version
+        m_lr = lr_full;
+        
         return count;
     }
     
     catch (Exception e) {
-        m_log.log(Level.SEVERE, e.getMessage());
+        log.log(Level.SEVERE, e.getMessage());
         return -1;
     }
 }
 
 protected Collection<String> convertHeaderXML(Collection header1, String tname1) {
- return  super.convertHeaderXML(header1, tname1, AGS_Dictionary.Lang.AGS);
+ return  super.convertHeaderXML(header1, tname1,agsml.Constants.Lang.AGS);
 }
 
 public void AGS_to_XML_Nest(AGS_ReaderLine lr1){
@@ -788,7 +992,7 @@ private int addRow(Collection header, Collection data, Boolean AddEmptyData) {
             d_it = data.iterator();
             
             if (header.size() != data.size()){
-                System.out.print(header.size());
+               log.info("Possible error Header and data size should be same:  Header(" + header.size() + ") Data(" + data.size() + ")");
             }
             
             do {
@@ -804,7 +1008,7 @@ private int addRow(Collection header, Collection data, Boolean AddEmptyData) {
             return 1;
     }
     catch (Exception e) {
-        m_log.log(Level.SEVERE, e.getMessage());
+        log.severe(e.getMessage());
         return -1;
     }
 }

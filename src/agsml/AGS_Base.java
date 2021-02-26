@@ -24,24 +24,13 @@ class AGS_Base extends Base_Class{
     protected StringBuilder m_sb;
     protected String m_NL;
     protected String m_tablename;
-    protected Header m_row; 
+    protected AGS_Header m_row; 
     protected HashMap <String, Integer> m_hm;
-    protected AGS_SOURCETYPE m_sourcetype;
+    protected agsml.Constants.AGS_SOURCETYPE m_sourcetype;
     
-    public final static String AGS_DATASOURCE = "AGSDataSource"; 
    
-    public enum AGS_SOURCETYPE {
-        FILE {
-            public String toString() {
-            return "FILE";
-            }
-        },
-        STRING {
-            public String toString() {
-            return "STRING";
-            }
-        }
-}
+   
+ 
     
     public AGS_Base () {
     }
@@ -72,21 +61,21 @@ class AGS_Base extends Base_Class{
     }
     
     public void setStringDataString(){
-        setProperty(AGS_DATASOURCE,"AGS_STRING");
-        m_sourcetype=AGS_SOURCETYPE.STRING;
+        setProperty(agsml.Constants.AGS_DATASOURCE,agsml.Constants.AGS_DATASOURCE_STRING);
+        m_sourcetype=agsml.Constants.AGS_SOURCETYPE.STRING;
         
     }
     public void setFileDataSource (String s1) {
-        setProperty(AGS_DATASOURCE,s1);
-        m_sourcetype=AGS_SOURCETYPE.FILE;
+        setProperty(agsml.Constants.AGS_DATASOURCE,s1);
+        m_sourcetype=agsml.Constants.AGS_SOURCETYPE.FILE;
     }
     
     public String FileDataSource() {
-        return getProperty (AGS_DATASOURCE);
+        return getProperty (agsml.Constants.AGS_DATASOURCE);
     }
     public String DataSource() {
-        if (m_sourcetype==AGS_SOURCETYPE.FILE) {
-            return getProperty(AGS_DATASOURCE);
+        if (m_sourcetype==agsml.Constants.AGS_SOURCETYPE.FILE) {
+            return getProperty(agsml.Constants.AGS_DATASOURCE);
         } else
             return m_ags_data;
     }
@@ -98,20 +87,18 @@ class AGS_Base extends Base_Class{
          }
         catch (Exception e) {
         // catch possible io errors from readLine()
-        System.out.println("Uh oh, got an IOException error!");
-        e.printStackTrace();
+        log.severe(e.getMessage());
         }
     }    
     public void getFileDataSource () {
         try {
-         String m_fname = getProperty (AGS_DATASOURCE);
+         String m_fname = getProperty (agsml.Constants.AGS_DATASOURCE);
          m_fr = new FileReader(m_fname);
          init_BufferedReader(new BufferedReader(m_fr));
          }
         catch (IOException e) {
         // catch possible io errors from readLine()
-        System.out.println("Uh oh, got an IOException error!");
-        e.printStackTrace();
+        log.severe(e.getMessage());
         } 
     }
     public boolean NewBufferedReader() {
@@ -121,7 +108,7 @@ class AGS_Base extends Base_Class{
 
     protected void init_BufferedReader(BufferedReader br){
         m_br = br;
-        m_row = new Header();
+        m_row = new AGS_Header();
         m_tablename = new String();
         m_read_line = new String();
         m_next_line = new String();
@@ -162,4 +149,121 @@ class AGS_Base extends Base_Class{
          }
          return i;
       }
-    }
+    
+    class AGS_Header extends Header {
+        protected String HoleId_fieldName;
+        protected String depthTOP_fieldName;
+        protected String depthBASE_fieldName;
+        protected int col_holeid = -1;
+        protected int col_depthTOP = -1;
+        protected int col_depthBASE = -1;
+        public AGS_Header(){}
+        public AGS_Header (String[] Columns) {
+            super(Columns);
+        }
+        public void setHoleId_fieldName(String s1, int id) {
+           HoleId_fieldName = s1;
+           col_holeid = id;
+        }
+        public void setDepthTOP_fieldName(String s1, int id) {
+           depthTOP_fieldName = s1;
+           col_depthTOP = id;
+        }
+        public void setDepthBASE_fieldName(String s1, int id) {
+            depthBASE_fieldName = s1;
+            col_depthBASE = id; 
+        }
+        public int get_col_HoleId () {return col_holeid;}
+        public int get_col_depthTOP () {return col_depthTOP;}
+        public int get_col_depthBASE () {return col_depthBASE;}
+        
+        public int setHoleId_fieldName(String s1) {
+            
+           HoleId_fieldName = s1;     
+           col_holeid = this.FindColumn(s1);
+           return col_holeid;
+        }
+        public int setDepthBASE_fieldName(String s1) {
+           int i = this.FindColumn(s1);
+           if (i >=0 ) {
+             col_depthBASE = i;
+             depthBASE_fieldName = s1;
+             return i;
+           }
+           return -1; 
+        }
+        public int setDepthTOP_fieldName(String s1) {
+           int i = this.FindColumn(s1);
+            if (i >= 0) {
+            col_depthTOP = i;
+            depthTOP_fieldName = s1;
+            return  i;
+           }
+           return -1;
+           
+        }
+
+   }     
+   public AGS_ReaderLine.LineType ReadLine(){return AGS_ReaderLine.LineType.Error;};
+   public AGS_ReaderLine.LineType NextLine(){return AGS_ReaderLine.LineType.Error;};
+     
+   public String getAllDataForHole(String HoleId) {
+       
+       StringBuilder sb =  new StringBuilder();
+       AGS_ReaderLine.LineType lt = AGS_ReaderLine.LineType.Empty;
+       String tableName = "";
+       String tableHeader ="";
+       String tableUnit = "";
+       String tableType = "";
+       
+       Boolean in_table = false;
+        
+       do {
+            lt = ReadLine();
+            switch (lt) {
+                case tableHeader:
+                    tableHeader = m_read_line;
+                    break;
+                case tableName:
+                    tableName = m_read_line;
+                    break;
+                case tableUnits:
+                    tableUnit = m_read_line;
+                    break;
+                case tableType:
+                    tableType = m_read_line;
+                    break;
+                case rowData: 
+                    if (m_read_line.contains(HoleId)) {
+                        if (in_table == false) {
+                            sb.append(tableName + "\r\n");
+                            sb.append(tableHeader + "\r\n");
+                            sb.append(tableUnit + "\r\n");
+                            sb.append(tableType + "\r\n");
+                        }
+                        sb.append(m_read_line +  "\r\n");
+                        in_table = true;
+                    }
+                    break;
+                case Empty:
+                    in_table = false;
+                    tableName = "";
+                    tableHeader = "";
+                    tableUnit = "";
+                    tableType = "";
+                    sb.append("\r\n");
+                    
+                case Error:
+                case EOF:
+                    break;
+                default:
+                    sb.append(m_read_line +  "\r\n");
+            }
+        
+            lt = NextLine();
+        
+       } while (lt!=AGS_ReaderLine.LineType.EOF);
+       
+       return sb.toString();
+   }
+}

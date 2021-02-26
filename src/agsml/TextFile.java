@@ -5,6 +5,7 @@ package agsml;
  * and open the template in the editor.
  */
 import java.io.*;
+import java.util.logging.Logger;
 /**
  *
  * @author Simon
@@ -14,7 +15,7 @@ class TextFile{
     private BufferedReader m_br;
     private StringBuilder m_sb;
     private String m_NL;
-
+    public Logger log;
     public TextFile (String filename) {
         try {
           m_fr = new FileReader(filename);
@@ -23,9 +24,7 @@ class TextFile{
           m_NL = System.getProperty("line.separator");
         }
         catch (IOException e) {
-        // catch possible io errors from readLine()
-        System.out.println("Uh oh, got an IOException error!");
-        e.printStackTrace();
+          log.severe(e.getMessage());
 
     }
     }
@@ -45,9 +44,7 @@ class TextFile{
            return str;
         }
         catch (IOException e) {
-        // catch possible io errors from readLine()
-        System.out.println("Uh oh, got an IOException error!");
-        e.printStackTrace();
+           log.severe(e.getMessage());
         return null;
         }
 
@@ -66,9 +63,7 @@ class TextFile{
            }
 
         } catch (IOException e) {
-           // catch possible io errors from readLine()
-           System.out.println("Uh oh, got an IOException error!");
-           e.printStackTrace();
+           log.severe(e.getMessage());
            return 0;
         }
         return 1;
@@ -81,9 +76,7 @@ class TextFile{
           record = m_br.readLine();
           return record;
          } catch (IOException e) {
-           // catch possible io errors from readLine()
-           System.out.println("Uh oh, got an IOException error!");
-           e.printStackTrace();
+           log.severe(e.getMessage());
            return null;
         }
     }

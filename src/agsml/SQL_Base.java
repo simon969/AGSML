@@ -41,7 +41,14 @@ class SQL_Base extends Base_Class{
     public final int SQL_DATETIME = 93;
     public final int SQL_XML = -10 ;
     
-   
+    public final String[] AGS31_Tables = {
+        "","",""
+    };
+    
+    public final String[] AGS4_Tables = {
+        "AAVT","ACVT","AELO","AFLK","GCHM","LLPL"
+    };
+    
     public enum SQLDataType  {
         
        // http://documentation.progress.com/output/DataDirect/DataDirectCloud/index.html#page/queries/microsoft-sql-server-data-types.html 
@@ -73,8 +80,8 @@ class SQL_Base extends Base_Class{
            
          File db = new File (source); 
          if (db.exists()) {
-             Filename f1 = new Filename(db.getName(),'\\' ,'.');
-             String ext = f1.extension();
+             AGS_Data f = new AGS_Data(db.getName());
+             String ext = f.FileExtension();
                 if (ext.equals("mdb") || ext.equals("gpj") || ext.equals("accdb")) {
                 get_AccessConnection(db.getAbsolutePath());
                 }
@@ -88,7 +95,7 @@ class SQL_Base extends Base_Class{
          
        } 
        catch (Exception e) {
-              m_log.log(Level.SEVERE, e.getMessage());
+              log.log(Level.SEVERE, e.getMessage());
        }
  }
    boolean get_SQLServerConnection(String url) {
@@ -102,7 +109,7 @@ class SQL_Base extends Base_Class{
             return true;
     }
     catch (Exception e) {
-           m_log.log(Level.SEVERE, e.getMessage());
+           log.log(Level.SEVERE, e.getMessage());
            return false;
     }
    }
@@ -116,21 +123,46 @@ class SQL_Base extends Base_Class{
         return true;
     }
     catch (SQLException e) {
-           m_log.log(Level.SEVERE, e.getMessage());
+           log.log(Level.SEVERE, e.getMessage());
            m_Conn =  null;
            return false; }
    
     catch (ClassNotFoundException e) {
-           m_log.log(Level.SEVERE, e.getMessage());
+           log.log(Level.SEVERE, e.getMessage());
            m_Conn =  null;
            return false; } 
    
     catch (Exception e) {
-           m_log.log(Level.SEVERE, e.getMessage());
+           log.log(Level.SEVERE, e.getMessage());
            m_Conn =  null;
            return false; } 
     }
+  public String getAGSVersion(String defaultAGS) {
    
+        if (defaultAGS.isEmpty()) {
+            defaultAGS = "AGS31";
+        }
+        
+        try {
+            int result = 0;
+            DatabaseMetaData dbm = m_Conn.getMetaData();
+            // check if "employee" table is there
+            ResultSet resultSet = dbm.getTables(null, null, null, new String[]{"TABLE"});
+        
+            while(resultSet.next()) {
+                String tName = resultSet.getString("TABLE_NAME");
+                     if (inArray(AGS4_Tables, tName,false)>0)
+                     return "AGS4";
+            }
+        
+            return defaultAGS;
+        } 
+        catch  (SQLException e ) {
+            log.log(Level.SEVERE, e.getMessage());
+            return defaultAGS;
+        } 
+  }
+  
   public int find_tablename(String s1){
        
         try {
@@ -151,7 +183,7 @@ class SQL_Base extends Base_Class{
         }
           
         catch  (SQLException e ) {
-            m_log.log(Level.SEVERE, e.getMessage());
+            log.log(Level.SEVERE, e.getMessage());
             return -1;
         } 
     }
@@ -168,20 +200,21 @@ class SQL_Base extends Base_Class{
             } else {
                 s1 = select +  ADDgINTProjectId(" where ");
             }
-            System.out.println(s1); 
+           
             
             Statement stmt = m_Conn.createStatement(
                                       ResultSet.TYPE_SCROLL_SENSITIVE,
                                       ResultSet.CONCUR_UPDATABLE);
              
-             ResultSet rs = stmt.executeQuery(s1 );
+            ResultSet rs = stmt.executeQuery(s1 );
              
-             
+          //  log.log(Level.INFO, "executeQuery:" + s1);  
+            
              return rs;
         }
           
         catch  (SQLException e ) {
-            m_log.log(Level.SEVERE, e.getMessage()); 
+            log.log(Level.SEVERE, e.getMessage()); 
             return null;
         }
   }  
@@ -215,7 +248,7 @@ class SQL_Base extends Base_Class{
 //        }
 //          
 //        catch  (SQLException e ) {
-//            m_log.log(Level.SEVERE, e.getMessage()); 
+//            log.log(Level.SEVERE, e.getMessage()); 
 //            return null;
 //        }
   }
@@ -232,7 +265,7 @@ class SQL_Base extends Base_Class{
         }
           
         catch  (SQLException e ) {
-            m_log.log(Level.SEVERE, e.getMessage()); 
+            log.log(Level.SEVERE, e.getMessage()); 
             return null;
         }
   }
@@ -249,7 +282,7 @@ class SQL_Base extends Base_Class{
         }
           
         catch  (SQLException e ) {
-            m_log.log(Level.SEVERE, e.getMessage()); 
+            log.log(Level.SEVERE, e.getMessage()); 
             return -1;
         }
       

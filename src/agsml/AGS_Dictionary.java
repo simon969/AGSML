@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Element;
+import agsml.Constants;
 
 /**
  *
@@ -15,14 +16,10 @@ import org.w3c.dom.Element;
  */
 public class AGS_Dictionary extends XML_DOM {
     
-    private final String constSQL = "sql";
-    private final String constAGS = "ags";
-    private final String constXML = "agsml";
-    private final String constGINT = "gint";
+
     
     private HashMap<String, Node> m_hmtable;
-      
-     
+        
     private Node m_table;
     private Node m_tableSQL;
     private Node m_tableAGS;
@@ -35,113 +32,71 @@ public class AGS_Dictionary extends XML_DOM {
     private Node m_fieldXML;
     private Node m_fieldGINT;
     
-    public final String constDictionaryAGSMLTag = "DictionaryAGSML";
-    public final String constDefaultDictionaryId = "AGS3.1a";
-//    private final String constGintRecID = "GintRecID";
-//    private final String constGintProjectID = "gINTProjectID";
-    private final String constGint = "GINT";
+    public agsml.Constants.AGSVersion  getAGSVersion() {
     
-    public enum Lang {
-            GEN (0)  {public int toInt() {return 0;}},
-            AGS (1) {public int toInt() {return 1;}},
-            SQL (2) {public int toInt() {return 2;}},
-            XML (3) {public int toInt() {return 3;}},
-            GINT (4) {public int toInt() {return 4;}};
-        private int value;     
-        public abstract int toInt();
-        private Lang(int value) {
-           this.value=value;
-       }       
-    }
-    public String getAGSDictionaryId(AGSVersion ags) {
-        switch (ags) {
-            case NONE: 
-                return "NONE";
-            case AGS30: 
-                return "AGS3.0";  
-            case AGS31: 
-                return "AGS3.1";  
-            case AGS31a: 
-                return "AGS3.1a";    
-            case AGS403: 
-                return "AGS4.03";   
-            case AGS404: 
-               return "AGS4.04";  
-        }
-        return "NONE";
-    } 
-    
-    public enum AGSVersion {
-            NONE (0)  {public int toInt() {return 0;}
-                            public String toDictionaryId() {return "NONE";}},
-            AGS30 (300) {public int toInt() {return 300;}
-                            public String toDictionaryId() {return "AGS3.0";}},
-            AGS31 (310) {public int toInt() {return 310;}
-                            public String toDictionaryId() {return "AGS3.1";}},
-            AGS31a (311) {public int toInt() {return 311;}
-                            public String toDictionaryId() {return "AGS3.1a";}},
-            AGS403 (403) {public int toInt() {return 403;}
-                            public String toDictionaryId() {return "AGS4.03";}},
-            AGS404 (404) {public int toInt() {return 404;}
-                            public String toDictionaryId() {return "AGS4.04";}};
-    private int value;     
-       public abstract int toInt();
-       public abstract String toDictionaryId();
-       private AGSVersion(int value) {
-           this.value=value;
-       }
-    } 
-    private AGSVersion getAGSVersion(int value) {
-        switch (value) {
-            case 30: 
-                return AGSVersion.AGS30;
-            case 310: 
-                return AGSVersion.AGS31;      
-            case 311: 
-                return AGSVersion.AGS31a;    
-            case 403: 
-               return AGSVersion.AGS403;   
-            case 404: 
-               return AGSVersion.AGS404;  
-        }
-        return AGSVersion.NONE;
-    } 
-    public AGSVersion getAGSVersion() {
-        
-        String s1 = "0.0";
-        AGSVersion ags1 = AGSVersion.NONE;
-                
-        Node n1 = findSubNode("version");
-        
-    if (n1 == null) {
-        return ags1;
+        String s1 = getAttributeValue(m_root,agsml.Constants.AGS_ATTRIBUTE_AGSVERSION);
+        if (s1 !=null) {
+            return agsml.Constants.getAGSVersion(s1);
+        } 
+        return agsml.Constants.AGSVersion.NONE;
     }
       
-    NodeList nl1 = n1.getChildNodes();
-             
-        for (int i = 0; i < nl1.getLength(); i++) {
-           n1 = nl1.item(i);
-           if (n1.getNodeType() == Node.ELEMENT_NODE) {
-               String s2 = n1.getNodeName();
-               if (s2 == "ags") {
-                 Element e1 = (Element) n1;
-                 s1 = e1.getTextContent();
-               } 
-           }
-        } 
+    public double version(String language) {
         
-        String s2 = s1.replaceAll("a", "1");
+        String s1 = "0.0";
+                       
+        Node n1 = findSubNode(m_root, agsml.Constants.AGS_VERSION_TAG);
         
-        float f1 = Float.valueOf(s2) * 100;
-        ags1 = getAGSVersion (Math.round(f1)) ;
-        return ags1;
+        if (n1 == null) {
+            return -1;
+        }
+    
+        NodeList nl1 = n1.getChildNodes();
+
+            for (int i = 0; i < nl1.getLength(); i++) {
+               n1 = nl1.item(i);
+               if (n1.getNodeType() == Node.ELEMENT_NODE) {
+                   String s2 = n1.getNodeName();
+                   if (s2.equalsIgnoreCase(language)) {
+                     Element e1 = (Element) n1;
+                     s1 = e1.getTextContent();
+                     return Double.valueOf(s1);
+                   } 
+               }
+            } 
+        return -1;  
     }
     
+    public Node setAGSVersion (agsml.Constants.AGSVersion req_version) {
+         
+        Node current_version = m_root;
+        agsml.Constants.AGSVersion found_version;
+        
+        NodeList nl1 = m_doc.getElementsByTagName(agsml.Constants.AGS_DICTIONARY_TAG);
+        
+        for (int i = 0; i < nl1.getLength(); i++) {
+           Node n1 = nl1.item(i);
+            if (n1.getNodeType() == Node.ELEMENT_NODE) { 
+                setRoot(n1);
+                found_version = getAGSVersion();
+                if (found_version==req_version) {
+                    return m_root;
+                }
+           }    
+        }
+        // version not found reset m_root to current_version node
+        m_root = current_version;
+        return null;
+    }
     public AGS_Dictionary () {
     }
+    public AGS_Dictionary (XML_DOM xml_dom) throws Exception{
+        super(xml_dom, agsml.Constants.AGS_DICTIONARY_TAG);
+        setDictionaryID(agsml.Constants.AGS_DICTIONARYID_DEFAULT); 
+   }   
     public AGS_Dictionary (String fXMLFile) throws Exception {
         super (fXMLFile,fileState.MUSTEXIST);
-        setDictionaryID(constDefaultDictionaryId);
+        setDictionaryID(agsml.Constants.AGS_DICTIONARYID_DEFAULT);
     }
             
    public AGS_Dictionary (String fXMLFile, String id) throws Exception {
@@ -149,6 +104,7 @@ public class AGS_Dictionary extends XML_DOM {
         m_hmtable = new HashMap<String, Node>();
         setDictionaryID(id);
     }
+  
    private int indexTable() {
      int count = 0;
      try {
@@ -170,82 +126,83 @@ public class AGS_Dictionary extends XML_DOM {
    public Node setDictionaryID (String id) throws Exception {
      
    try {
-           Node n1 = setRoot(constDictionaryAGSMLTag, "id", id);
-           if (n1 == null) throw new Exception ("Failed set " + constDictionaryAGSMLTag + " node, unable to find <" + constDictionaryAGSMLTag + " id=" + id + ">");
+           Node n1 = setRoot(agsml.Constants.AGS_DICTIONARY_TAG, "id", id);
+           if (n1 == null) throw new Exception ("Failed set " + agsml.Constants.AGS_DICTIONARY_TAG + " node, unable to find <" + agsml.Constants.AGS_DICTIONARY_TAG + " id=" + id + ">");
            return n1;
         } 
        catch (Exception e) {
-           m_log.log(Level.SEVERE, id);
+           log.log(Level.SEVERE, id);
            return null;
         }
     }
    
    public String DictionaryAGSMLTag(){
-       return constDictionaryAGSMLTag;
+       return agsml.Constants.AGS_DICTIONARY_TAG;
    }
-   public String field_name(Lang lang) {
+   public String field_name(agsml.Constants.Lang lang) {
        switch (lang) {
            case GEN:
-            return find_value(m_field, "name");
+            return find_attribute_value(m_field, "name");
            case AGS:
-            return find_value(m_fieldAGS, "name");
+            return find_node_value(m_fieldAGS, "name");
            case GINT:
-            return find_value(m_fieldGINT, "name");   
+            return find_node_value(m_fieldGINT, "name");   
            case XML:
-            return find_value(m_fieldXML, "name");
+            return find_node_value(m_fieldXML, "name");
             
        }
        return "";
    }
    public String fieldGEN_name(){
-        return find_value(m_field, "name");
+        return find_attribute_value(m_field, "name");
     }
     public  String fieldSQL_name(){
-        return find_value(m_fieldGINT,"name");
+        return find_node_value(m_fieldGINT,"name");
    }
    public  String fieldGINT_name(){
-        return find_value(m_fieldGINT,"name");
+        return find_node_value(m_fieldGINT,"name");
     }
-   public  String fieldGINT_type(){
-        return find_value(m_fieldGINT,"type");
+    public  String fieldGINT_type(){
+        return find_node_value(m_fieldGINT,"type");
     }
    public  String fieldGINT_length(){
-        return find_value(m_fieldGINT,"length");
+        return find_node_value(m_fieldGINT,"length");
     }
    public  String fieldAGS_name(){
-        return find_value(m_fieldAGS, "name");
+       String s1 =  find_node_value(m_fieldAGS, "name");
+       return s1;
     }
     public  String fieldXML_name(){
-        return find_value(m_fieldXML, "name");
+        return find_node_value(m_fieldXML, "name");
     }
     
-    public String table_name(Lang lang) {
+    public String table_name(agsml.Constants.Lang lang) {
        switch (lang) {
            case GEN:
-            return find_value(m_table, "name");
+            return find_node_value(m_table, "name");
            case AGS:
-            return find_value(m_tableAGS, "name");
+            return find_node_value(m_tableAGS, "name");
            case GINT:
-            return find_value(m_tableGINT, "name");   
+            return find_node_value(m_tableGINT, "name");   
            case SQL:
-            return find_value(m_tableSQL, "name");      
+            return find_node_value(m_tableSQL, "name");      
            case XML:
-            return find_value(m_tableXML, "name");    
+            return find_node_value(m_tableXML, "name");    
        }
        return "";
    }
     
     public  String tableGINT_name(){
-        return find_value(m_tableGINT, "name");
+        return find_node_value(m_tableGINT, "name");
     }
    public String tableAGS_name(){
-        return find_value(m_tableAGS, "name");
+        return find_node_value(m_tableAGS, "name");
     }
     public  String tableXML_name(){
-        return find_value(m_tableXML, "name");
+        return find_node_value(m_tableXML, "name");
     }
    public  String tableGEN_name(){
-        return find_value(m_table, "name");
+        return find_attribute_value(m_table, "name");
     }
     
 //   public String getTableNameAGS  (String t1name, ) {
@@ -315,10 +272,10 @@ public class AGS_Dictionary extends XML_DOM {
                if (n2.getNodeType() == n1.ELEMENT_NODE) {
                    if (n2.getNodeName().equals("table")) {
                         m_table= n2;
-                        m_tableAGS = findSubNode(m_table, constAGS);
-                        m_tableXML= findSubNode(m_table, constXML);
-                        m_tableSQL = findSubNode(m_table, constSQL);
-                        m_tableGINT= findSubNode(m_table, constGINT);
+                        m_tableAGS = findSubNode(m_table, agsml.Constants.AGS_FORMAT_AGS);
+                        m_tableXML= findSubNode(m_table, agsml.Constants.AGS_FORMAT_XML);
+                        m_tableSQL = findSubNode(m_table, agsml.Constants.AGS_FORMAT_SQL);
+                        m_tableGINT= findSubNode(m_table, agsml.Constants.AGS_FORMAT_GINT);
                         return m_table;
                     }
                 }
@@ -332,27 +289,27 @@ public class AGS_Dictionary extends XML_DOM {
         return null;
     }  
    public Node first_table(){
-        m_table = findSubNode("table");
-        m_tableAGS = findSubNode(m_table,constAGS);
-        m_tableXML = findSubNode(m_table, constXML);
-        m_tableSQL = findSubNode(m_table, constSQL);
-        m_tableGINT= findSubNode(m_table, constGINT);
+        m_table = findSubNode(m_root, "table");
+        m_tableAGS = findSubNode(m_table,agsml.Constants.AGS_FORMAT_AGS);
+        m_tableXML = findSubNode(m_table, agsml.Constants.AGS_FORMAT_XML);
+        m_tableSQL = findSubNode(m_table, agsml.Constants.AGS_FORMAT_SQL);
+        m_tableGINT= findSubNode(m_table, agsml.Constants.AGS_FORMAT_GINT);
         return m_table;
     }
    public Node first_field(){
         m_field = findSubNode(m_table,"field");
-        m_fieldAGS = findSubNode( m_field ,constAGS);
-        m_fieldXML = findSubNode( m_field ,constXML);
-        m_fieldSQL = findSubNode( m_field ,constSQL); 
-        m_fieldGINT = findSubNode( m_field ,constGINT);
+        m_fieldAGS = findSubNode(m_field ,agsml.Constants.AGS_FORMAT_AGS);
+        m_fieldXML = findSubNode(m_field ,agsml.Constants.AGS_FORMAT_XML);
+        m_fieldSQL = findSubNode(m_field ,agsml.Constants.AGS_FORMAT_SQL); 
+        m_fieldGINT = findSubNode(m_field ,agsml.Constants.AGS_FORMAT_GINT);
         return m_field;
     }
    private void get_fields(){
        try {
-        m_fieldAGS = findSubNode( m_field ,constAGS);
-        m_fieldXML = findSubNode( m_field ,constXML);
-        m_fieldSQL = findSubNode( m_field ,constSQL);
-        m_fieldGINT = findSubNode( m_field ,constGINT);
+        m_fieldAGS = findSubNode(m_field ,agsml.Constants.AGS_FORMAT_AGS);
+        m_fieldXML = findSubNode(m_field ,agsml.Constants.AGS_FORMAT_XML);
+        m_fieldSQL = findSubNode(m_field ,agsml.Constants.AGS_FORMAT_SQL);
+        m_fieldGINT = findSubNode(m_field ,agsml.Constants.AGS_FORMAT_GINT);
        }
        catch (Exception e) {
            
@@ -373,10 +330,10 @@ public class AGS_Dictionary extends XML_DOM {
                 if (n2.getNodeType() == Node.ELEMENT_NODE) {
                       if (n2.getNodeName().equals("field")) {
                          m_field = n2;
-                         m_fieldAGS = findSubNode( m_field ,constAGS);
-                         m_fieldSQL = findSubNode( m_field ,constSQL);
-                         m_fieldXML = findSubNode( m_field ,constXML);  
-                         m_fieldGINT = findSubNode( m_field ,constGINT);  
+                         m_fieldAGS = findSubNode(m_field ,agsml.Constants.AGS_FORMAT_AGS);
+                         m_fieldSQL = findSubNode(m_field ,agsml.Constants.AGS_FORMAT_SQL);
+                         m_fieldXML = findSubNode(m_field ,agsml.Constants.AGS_FORMAT_XML);  
+                         m_fieldGINT = findSubNode(m_field ,agsml.Constants.AGS_FORMAT_GINT);  
                         return m_field;
                       }
                 }
@@ -393,14 +350,21 @@ public class AGS_Dictionary extends XML_DOM {
        }
        
     }
-   private String find_value( Node n1, String s1){
+   private String find_attribute_value(Node n1, String s1) {
+      try {
+          return n1.getAttributes().getNamedItem(s1).getNodeValue();
+      } catch (Exception e) {
+          return null;
+      }
+   }
+   private String find_node_value( Node n1, String s1){
     try {
         Node n2 = findSubNode(n1, s1);
         if (n2 != null) {
             return n2.getTextContent();
         } else
         
-        return "";
+        return null;
         
     } 
     catch (Exception e) {
@@ -428,23 +392,23 @@ public class AGS_Dictionary extends XML_DOM {
 //   private Node find_table(String tname) {
 //       return find_table(tname, null);
 //   }
-  public Node find_table(String tname, Lang l){
+  public Node find_table(String tname, agsml.Constants.Lang l){
     try {
          first_table();
             do {
-                if (l==Lang.GEN && this.tableGEN_name().equals(tname)) {
+                if (l==agsml.Constants.Lang.GEN && this.tableGEN_name().equals(tname)) {
                     return m_table;
                 }
-                if (l==Lang.AGS && this.tableAGS_name().equals(tname)) {
+                if (l==agsml.Constants.Lang.AGS && this.tableAGS_name().equals(tname)) {
                     return m_table;
                 }
-                if (l==Lang.GINT && this.tableGINT_name().equals(tname)) {
+                if (l==agsml.Constants.Lang.GINT && this.tableGINT_name().equals(tname)) {
                     return m_table;
                 }
-                if (l==Lang.SQL && this.tableGINT_name().equals(tname)) {
+                if (l==agsml.Constants.Lang.SQL && this.tableGINT_name().equals(tname)) {
                     return m_table;
                 }
-                if (l==Lang.XML && this.tableXML_name().equals(tname)) {
+                if (l==agsml.Constants.Lang.XML && this.tableXML_name().equals(tname)) {
                     return m_table;
                 } 
                       
@@ -458,60 +422,152 @@ public class AGS_Dictionary extends XML_DOM {
        
     }
     public Node find_tableGEN(String tname){
-       return find_table(tname,Lang.GEN);
+       return find_table(tname,agsml.Constants.Lang.GEN);
      }
        
      public Node find_tableXML (String tname){
-     return find_table(tname,Lang.XML);
+     return find_table(tname,agsml.Constants.Lang.XML);
      }
      
    public Node find_tableAGS (String tname){
-     return find_table(tname,Lang.AGS);   
+     return find_table(tname,agsml.Constants.Lang.AGS);   
  }
         
    public Node find_tableGINT (String tname){
-     return find_table(tname,Lang.GINT);  
+     return find_table(tname,agsml.Constants.Lang.GINT);  
 }
-   
-    public Node find_field (String fname, Lang l){
-     try {
-           first_field();
-            
-           do {
-                if (l==Lang.GEN && this.fieldGEN_name().equals(fname)) {
-                    return m_field;
-                }
-                if (l==Lang.AGS && this.fieldAGS_name().equals(fname)) {
-                    return m_field;
-                }
-                if (l==Lang.GINT && this.fieldGINT_name().equals(fname)) {
-                    return m_field;
-                }
-                if (l==Lang.SQL && this.fieldSQL_name().equals(fname)) {
-                    return m_field;
-                }
-                if (l==Lang.XML && this.fieldXML_name().equals(fname)) {
-                    return m_field;
+     public Node find_field (String fname, agsml.Constants.Lang l){
+     return find_field (fname, l, true);    
+    }
+    public Node find_field (String fname, agsml.Constants.Lang l, boolean matchExact){
+        try {
+            first_field();
+            do {
+                String s1 = field_name(l);
+                 
+                if (s1 != null) {
+                    if (matchExact && !s1.isEmpty() && fname.contains(s1)) {
+                        return m_field;    
+                    }
+                
+                    if (!matchExact && !s1.isEmpty() && s1.contains(fname)) {
+                        return m_field;  
+                    }
                 }
             }   while( next_field() != null);
         return null;
         }
-      catch (Exception e) {
-          return null;
-}
-}
+        catch (Exception e) {
+            return null;
+        }
+    }
    public Node find_fieldAGS (String fname){
-      return find_field(fname, Lang.AGS);
+      return find_field(fname, agsml.Constants.Lang.AGS);
+   }
+   public Node find_fieldAGSContains (String contains){
+      return find_field(contains, agsml.Constants.Lang.AGS,false);
    }
    public Node find_fieldXML (String fname){
-     return find_field(fname, Lang.XML);
+     return find_field(fname, agsml.Constants.Lang.XML);
+   }
+   public Node find_fieldXMLContains (String contains){
+     return find_field(contains, agsml.Constants.Lang.XML, false);
    }
    public Node find_fieldGINT (String fname){
-     return find_field(fname, Lang.GINT);
+     return find_field(fname, agsml.Constants.Lang.GINT);
+   }
+   public Node find_fieldGINTContains (String contains){
+     return find_field(contains, agsml.Constants.Lang.GINT,false);
    }
    public Node find_fieldGEN (String fname){
-     return find_field(fname, Lang.GEN);
+     return find_field(fname, agsml.Constants.Lang.GEN);
    }
+   public Node find_fieldGENContains (String contains){
+     return find_field(contains, agsml.Constants.Lang.GEN,false);
+   }
+   public Node find_fieldDepthTOP() {
+       
+        StringBuilder depthTOP = new StringBuilder(); 
+        
+        depthTOP.append(tableGEN_name() + "_TOP;");
+        depthTOP.append(tableGEN_name() + "_FROM;");
+        depthTOP.append(tableGEN_name() + "_DPTH;");
+        depthTOP.append(tableGEN_name() + "_DIS;");
+        depthTOP.append("SAMP_TOP;");
+        depthTOP.append("MONG_DIS;");
+        depthTOP.append("SCDG_DPTH;");
+        depthTOP.append("WSTG_DEP;");
+        depthTOP.append("MONG_TRZ;");
+        depthTOP.append("IPRG_TOP;");
+        depthTOP.append("PMTG_DPTH");
+        
+        if (find_fieldGEN(depthTOP.toString())!=null) {
+            return m_field;
+        }
+        
+        return null;
+   }
+   public Node find_fieldDepthTOP2() {
+        
+             
+        if (find_fieldGEN(this.tableGEN_name() + "_TOP") != null ) {
+            return m_field;
+        }
+        
+        if (find_fieldGEN(this.tableGEN_name() + "_FROM") != null ) {
+            return m_field;
+        }
+        
+        if (find_fieldGEN(this.tableGEN_name() + "_DPTH") != null) {
+             return m_field;
+        }
+      
+        if (find_fieldGEN(this.tableGEN_name() + "_DIS") != null ) {
+            return m_field;
+        }
+        
+        if (find_fieldGEN("SAMP_TOP") != null) {
+            return m_field;
+        }
+        
+        if (find_fieldGEN("MONG_DIS") !=null) {
+            return m_field;
+        }
+        
+        if (find_fieldGEN("SCDG_DPTH") !=null) {
+            return m_field;
+        }
+        
+        if (find_fieldGEN("WSTG_DEP") !=null) {
+            return m_field;
+        }
+        
+        if (find_fieldGEN("MONG_TRZ") !=null) {
+            return m_field;
+        }
+        
+        if (find_fieldGEN("IPRG_TOP") !=null) {
+            return m_field;
+        }
+        
+        if (find_fieldGEN("PMTG_DPTH") !=null) {
+            return m_field;
+        }
+        return null;       
+    }
+    
+   public Node find_fieldDepthBASE() {
+        
+        if (find_fieldGEN(this.tableAGS_name() + "_BASE") != null ) {
+            return m_field;
+        }
+        
+        if (find_fieldGEN("SAMP_BASE") != null) {
+             return m_field;
+        }
+        
+        return null;       
+    }
 //   private Node find_field1 (String fname){
 //       try {
 //       first_field();
@@ -548,11 +604,10 @@ public class AGS_Dictionary extends XML_DOM {
        s3 = s1.substring(1);
        return s2 + s3;
        }
-       
-   public String get_GINTselect(String tablename, AGS_Dictionary.Lang lang, boolean OnlyNamedFields) {
+     
+   public String get_GINTselect(String tablename, agsml.Constants.Lang lang, boolean OnlyNamedFields) {
        try {
            
-     
        String s1 = "";
        String s2 = "";
        StringBuilder sb1 = new StringBuilder();
@@ -593,11 +648,12 @@ public class AGS_Dictionary extends XML_DOM {
       return null;    
          } 
        
-   }   
+   }  
+   
    public String format_XMLTry(String t1, String  f1){
        try {
        
-            if (f1.substring(0, 4).equalsIgnoreCase(constGint)) {
+            if (f1.substring(0, 4).equalsIgnoreCase(agsml.Constants.GINT_NAME)) {
             return f1;
             }
        
@@ -628,7 +684,7 @@ public class AGS_Dictionary extends XML_DOM {
    }
    
    public NodeList allDictionaryNodes() {
-     return m_doc.getElementsByTagName(constDictionaryAGSMLTag);
+     return m_doc.getElementsByTagName(agsml.Constants.AGS_DICTIONARY_TAG);
    }
    
 }

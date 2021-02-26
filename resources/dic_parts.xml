@@ -1,0 +1,495 @@
+	<field name = "TEST_STAT">
+		<unit></unit>
+		<description>Test Status</description>
+		<example>Checked</example>
+		<ags>
+			<name>TEST_STAT</name>
+		</ags>
+		<agsml>
+			<name>TestStat</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>TEST_STAT</name>
+			<type>nvarchar</type>
+			<length>255</length>
+		</sql>
+	</field>
+	
+	<field name = "FILE_FSET">
+		<unit></unit>
+		<description>Associated file reference</description>
+		<example>FS3</example>
+		<ags>
+			<name>FILE_REF</name>
+		</ags>
+		<agsml>
+			<name>FileFset</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>FILE_FSET</name>
+			<type>nvarchar</type>
+			<length>255</length>
+		</sql>
+	</field>
+	<field name = "SAMP_ID">
+		<unit></unit>
+		<description>Sample unique global identifier</description>
+		<example>ABC121415010</example>
+		<required>true</required>
+		<ags>
+			<name>SAMP_ID</name>
+		</ags>
+		<agsml>
+			<name>SampId</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>SAMP_ID</name>
+			<type>nvarchar</type>
+			<length>64</length>
+		</sql>
+	</field>
+	
+	
+	<table name = "AAVT">
+	<description>Aggregate Abrasion Tests</description>
+	<guidance></guidance>
+	<ags><name>AAVT</name></ags>
+	<agsml><name>Aavt</name></agsml>
+	<sql><name>AAVT</name></sql>
+	<field name = "LOCA_ID">
+	<unit></unit>
+	<example>327-16A</example>
+	<description>Location identifier</description>
+	<ags>
+		<name>LOCA_ID</name>
+		<required>true</required>
+	</ags>
+	<agsml>
+		<name>HoleId</name>
+		<type>string</type>
+	</agsml>
+	<sql>
+		<name>PointID</name>
+		<type>nvarchar</type>
+		<length>32</length>
+		<required>false</required>
+		<identity>false</identity>
+		<parent_table>Hole</parent_table>
+	</sql>
+	</field>
+	<field name = "SAMP_TOP">
+		<unit>m</unit>
+		<description>Depth to the TOP of sample</description>
+		<example>24.55</example>
+		<required>true</required>
+		<ags>
+			<name>SAMP_TOP</name>
+			
+			<required>true</required>
+		</ags>
+		<agsml>
+			<name>SampTop</name>
+			<type>float</type>
+		</agsml>
+		<sql>
+			<name>SAMP_Depth</name>
+			<type>float</type>
+			<required>true</required>
+			<identity>false</identity>
+		</sql>
+	</field>
+	<field name = "SAMP_REF">
+		<unit></unit>
+		<description>Sample Reference number</description>
+		<example>24</example>
+		<required>true</required>
+		<ags>
+			<name>SAMP_REF</name>
+		</ags>
+		<agsml>
+			<name>SampRef</name>
+			<type>integer</type>
+		</agsml>
+		<sql>
+			<name>SAMP_REF</name>
+			<type>integer</type>
+			<identity>true</identity>
+			<unique>true</unique>
+		</sql>
+	</field>
+	<field name = "SAMP_TYPE">
+		<unit></unit>
+		<description>Sample type</description>
+		<example>U</example>
+		<required>true</required>
+		<ags>
+			<name>SAMP_TYPE</name>
+			<required>true</required>
+		</ags>
+		<agsml>
+			<name>SampType</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>SAMP_TYPE</name>
+			<type>nvarchar</type>
+			<length>16</length>
+			<required>true</required>
+			<identity>false</identity>
+		</sql>
+	</field>
+	<field name = "SAMP_ID">
+		<unit></unit>
+		<description>Sample unique global identifier</description>
+		<example>ABC121415010</example>
+		<required>true</required>
+		<ags>
+			<name>SAMP_ID</name>
+		</ags>
+		<agsml>
+			<name>SampId</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>SAMP_ID</name>
+			<type>nvarchar</type>
+			<length>64</length>
+		</sql>
+	</field>
+	<field name = "SPEC_REF">
+		<unit></unit>
+		<description>Specimen reference number</description>
+		<example>1</example>
+		<required>true</required>
+		<ags>
+			<name>SPEC_REF</name>
+		</ags>
+		<agsml>
+			<name>SpecRef</name>
+			<type>integer</type>
+		</agsml>
+		<sql>
+			<name>SPEC_REF</name>
+			<type>integer</type>
+		</sql>
+	</field>
+	<field name = "SPEC_DPTH">
+		<unit>m</unit>
+		<description>Specimen depth</description>
+		<example>6.60</example>
+		<required>true</required>
+		<ags>
+			<name>SPEC_DPTH</name>
+		</ags>
+		<agsml>
+			<name>SpecDpth</name>
+			<type>float</type>
+		</agsml>
+		<sql>
+			<name>Depth</name>
+			<type>float</type>
+		</sql>
+	</field>
+	<field name = "SPEC_DESC">
+		<unit></unit>
+		<description>Specimen description</description>
+		<example>Grey slightly gravelly clay </example>
+		<required>false</required>
+		<ags>
+			<name>SPEC_DESC</name>
+		</ags>
+		<agsml>
+			<name>SpecDesc</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>SPEC_DESC</name>
+			<type>nvarchar</type>
+			<length>255</length>
+			<required>false</required>
+			<identity>false</identity>
+		</sql>
+	</field>
+	<field name = "SPEC_PREP">
+		<unit></unit>
+		<description> Details of specimen preparation including time between preparation and testing </description>
+		<example>2:1 water/soil extract </example>
+		<required>false</required>
+		<ags>
+			<name>SPEC_PREP</name>
+		</ags>
+		<agsml>
+			<name>SpecPrep</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>SPEC_PREP</name>
+			<type>nvarchar</type>
+			<length>255</length>
+			<required>false</required>
+			<identity>false</identity>
+		</sql>
+	</field>
+	<field name = "GCHM_REM">
+		<unit></unit>
+		<description>Remarks on test</description>
+		<example></example>
+		<required>false</required>
+		<ags>
+			<name>GCHM_REM</name>
+		</ags>
+		<agsml>
+			<name>GchmRem</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>GCHM_REM</name>
+			<type>nvarchar</type>
+			<length>255</length>
+			<required>false</required>
+			<identity>false</identity>
+		</sql>
+	</field>
+	<field name = "GCHM_METH">
+		<unit></unit>
+		<description>Test method</description>
+		<example></example>
+		<required>false</required>
+		<ags>
+			<name>GCHM_METH</name>
+		</ags>
+		<agsml>
+			<name>GchmMeth</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>GCHM_METH</name>
+			<type>nvarchar</type>
+			<length>32</length>
+			<required>false</required>
+			<identity>false</identity>
+		</sql>
+	</field>
+	<field name = "GCHM_LAB">
+		<unit></unit>
+		<description>Client/laboratory preferred name of determinand</description>
+		<example></example>
+		<required>false</required>
+		<ags>
+			<name>GCHM_LAB</name>
+		</ags>
+		<agsml>
+			<name>GchmLab</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>GCHM_LAB</name>
+			<type>nvarchar</type>
+			<length>32</length>
+			<required>false</required>
+			<identity>false</identity>
+		</sql>
+	</field>
+	<field name = "GCHM_CRED">
+		<unit></unit>
+		<description>Accrediting body and reference number (when appropriate) </description>
+		<example></example>
+		<required>false</required>
+		<ags>
+			<name>GCHM_CRED</name>
+		</ags>
+		<agsml>
+			<name>GchmCred</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>GCHM_CRED</name>
+			<type>nvarchar</type>
+			<length>32</length>
+			<required>false</required>
+			<identity>false</identity>
+		</sql>
+	</field>
+	<field name = "TEST_STAT">
+		<unit></unit>
+		<description>Test Status</description>
+		<example>Checked</example>
+		<ags>
+			<name>TEST_STAT</name>
+		</ags>
+		<agsml>
+			<name>TestStat</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>TEST_STAT</name>
+			<type>nvarchar</type>
+			<length>255</length>
+		</sql>
+	</field>
+		<field name = "IDEN_REM">
+		<unit></unit>
+		<description>Remarks</description>
+		<example>Uncorrected NDG values reported </example>
+		<ags>
+			<name>IDEN_REM</name>
+		</ags>
+		<agsml>
+			<name>IdenRem</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>IDEN_REM</name>
+			<type>nvarchar</type>
+			<length>256</length>
+			</sql>
+	</field>	
+	<field name = "FILE_FSET">
+		<unit></unit>
+		<description>Associated file reference</description>
+		<example>FS3</example>
+		<ags>
+			<name>FILE_REF</name>
+		</ags>
+		<agsml>
+			<name>FileFset</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>FILE_FSET</name>
+			<type>nvarchar</type>
+			<length>255</length>
+		</sql>
+	</field>
+	</table>
+	
+
+	<field name = "ICBR_ENV">
+		<unit></unit>
+		<description>Details of weather and environmental conditions during test </description>
+		<example>1</example>
+		<ags>
+			<name>ICBR_ENV</name>
+		</ags>
+		<agsml>
+			<name>IcbrEnv</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>ICBR_ENV</name>
+			<type>nvarchar</type>
+			<length>255</length>
+		</sql>
+	</field>
+	<field name = "IDEN_METH">
+		<unit></unit>
+		<description>Test method</description>
+		<example>Manufacturer's instructions </example>
+		<required>false</required>
+		<ags>
+			<name>IDEN_METH</name>
+		</ags>
+		<agsml>
+			<name>IdenMeth</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>IDEN_METH</name>
+			<type>nvarchar</type>
+			<length>255</length>
+		</sql>
+	</field>
+	<field name = "IDEN_CONT">
+		<unit></unit>
+		<description> Name of testing organisation</description>
+		<example>ACME On-site Testing Ltd </example>
+		<required>false</required>
+		<ags>
+			<name>IDEN_CONT</name>
+		</ags>
+		<agsml>
+			<name>IdenCont</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>IDEN_CONT</name>
+			<type>nvarchar</type>
+			<length>255</length>
+		</sql>
+	</field>
+	<field name = "IDEN_CRED">
+		<unit></unit>
+		<description> Accrediting body and reference number (when appropriate) </description>
+		<example>UKAS 0000 </example>
+		<required>false</required>
+		<ags>
+			<name>IDEN_CRED</name>
+		</ags>
+		<agsml>
+			<name>IdenCred</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>IDEN_CRED</name>
+			<type>nvarchar</type>
+			<length>255</length>
+		</sql>
+	</field>
+	<field name = "TEST_STAT">
+		<unit></unit>
+		<description>Test Status</description>
+		<example>Checked</example>
+		<ags>
+			<name>TEST_STAT</name>
+		</ags>
+		<agsml>
+			<name>TestStat</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>TEST_STAT</name>
+			<type>nvarchar</type>
+			<length>255</length>
+		</sql>
+	</field>
+	<field name = "GEOL_STAT">
+		<unit></unit>
+		<description>Stratum reference shown on trial pit or traverse sketch</description>
+		<example>1</example>
+		<ags>
+			<name>GEOL_STAT</name>
+		</ags>
+		<agsml>
+			<name>GeolStat</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>GEOL_STAT</name>
+			<type>nvarchar</type>
+			<length>255</length>
+		</sql>
+	</field>
+	<field name = "FILE_FSET">
+		<unit></unit>
+		<description>Associated file reference</description>
+		<example>FS3</example>
+		<ags>
+			<name>FILE_REF</name>
+		</ags>
+		<agsml>
+			<name>FileFset</name>
+			<type>string</type>
+		</agsml>
+		<sql>
+			<name>FILE_FSET</name>
+			<type>nvarchar</type>
+			<length>255</length>
+		</sql>
+	</field>
+	
+	
+	
+	

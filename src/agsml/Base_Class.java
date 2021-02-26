@@ -13,6 +13,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.lang.StringBuilder;
 import java.util.Map;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -22,156 +23,236 @@ import org.w3c.dom.NodeList;
  */
 class Base_Class {
     protected HashMap<String, String> m_props;
-    protected Logger m_log;
+    protected static Logger log = null;
     protected  final String const_Blank = "\\s+";
     protected  final String const_Empty = "";
-    
+       
     public Base_Class(){
-     Object obj = this;
-     m_log = Logger.getLogger( obj.getClass().getName());
-     m_log.setLevel(Level.ALL);
-     m_props = new HashMap<String, String>();
+      m_props = new HashMap<String, String>();
+    }
+    public Base_Class(Logger Log){
+        this();
+        log = Log;
+    }
+    public void setLogger(Logger Log) {
+        log = Log;
+    }
+            
+    public void setProperty (String Name, String Value ) {
+    m_props.put(Name, Value);
+    String msg = "setProperty " + Name + ":" + Value ; 
+    log.finest(msg);
+    }
+
+//    public void log_INFO(String message) {
+//        log.log(Level.INFO, message);
+//    }
+    public String getProperty (String name) {
+        return getProperty(name,"");
+    }
+    public String getProperty (String name, String valueIfEmpty) {
+        try {
+             String s1 = m_props.get(name);
+             if (s1 == null) {
+                 throw new Exception (name + " not found in property bag");
+             }
+             return s1;
+        }
+        catch (Exception e) {
+    //    log.log(Level.INFO, e.getMessage());
+        return valueIfEmpty;
+        }
+    }
+    public static int inArray(String[] s1, String s2, boolean IgnoreCASE) {
+        for (int i=0;i<s1.length;i++) {
+            if (s1[i].equals(s2)) {
+                return i;
+            }
+            if (IgnoreCASE && s1[i].equalsIgnoreCase(s2)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    public static boolean getBoolean(String s1) {
+        switch (s1.toUpperCase()) {
+           case "1": 
+           case "Y": case "YES":
+           case "T": case "TRUE" :
+           return true;
+
+           case "0": case "":
+           case "N": case "NO":  
+           case "F": case "FALSE": 
+                   return false;
+        }
+       return false;
+    }
+    public  boolean getProperty_bool(String name) {
+
+       String s1 = getProperty (name);
+       return getBoolean(s1);
+
+    }
+
+
+
+    public int getProperty_int(String name) {
+        return getProperty_int(name,0);
+    }
+    public int getProperty_int (String name, int valueIfEmpty) {
+        String s1 = getProperty(name);
+        if (s1.isEmpty()) {
+            return valueIfEmpty;
+        }
+        return Integer.valueOf(s1);
+    }
+     public float getProperty_float (String name, float valueIfEmpty) {
+         String s1 = getProperty(name);
+        if (s1.isEmpty()) {
+            return valueIfEmpty;
+        } 
+        return Float.valueOf(getProperty(name));
+    }
+     public float getProperty_float(String name) {
+        return getProperty_float(name,0);
+    } 
+
+    protected void setProperties  (NamedNodeMap nodeAttribs) {
+        for (int j = 0; j < nodeAttribs.getLength(); j++) {
+            m_props.put(nodeAttribs.item(j).getNodeName(),nodeAttribs.item(j).getNodeValue());
+        }
+    }
+    protected void setProperties  (HashMap<String, String> hm) {
+        for (String key : hm.keySet()) {
+            m_props.put(key, hm.get(key));
+        }
+    }
+
+    protected void passProperties(Node n1) {
+        Element e1 = (Element) n1;
+
+        for (Map.Entry<String, String> entrySet : m_props.entrySet()) {
+                String key = entrySet.getKey();
+                String value = entrySet.getValue();
+                   e1.setAttribute(key, value);
+                   }
+    }
+
+    final static String getAttributeValue(Node n1, String name) {
+     if (n1.getNodeType() == Node.ELEMENT_NODE) {
+           Element e = (Element) n1;
+           return e.getAttribute(name);
+     }
+     return "";
+     } 
+
+    final static  String getSubNodeValue(Node node, String nName ) {
+
+    try {
+        NodeList nodeList = node.getChildNodes();
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node currentNode = nodeList.item(i);
+             if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
+               String nodeName = currentNode.getNodeName();
+                   if (nodeName == nName) {
+                    return currentNode.getTextContent();
+                   }
+             }
+        }
+       return "";
+
+    } catch (Exception e) {
+       return "";
+    }
+    }
+
+    final static Node getSubNode(Node node, String nName ) {
+
+    try {
+        NodeList nodeList = node.getChildNodes();
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node currentNode = nodeList.item(i);
+             if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
+               String nodeName = currentNode.getNodeName();
+                   if (nodeName == nName) {
+                    return currentNode;
+                   }
+             }
+        }
+       return null;
+
+    } catch (Exception e) {
+       return null;
+    }
     }
     
-    public void setLogger(Logger log) {
-        m_log = log;
+    
+    
+    public static boolean empty( final String s ) {
+     // Null-safe, short-circuit evaluation.
+     return s == null || s.trim().isEmpty();
+    }
+    
+
+    public Node findSubNode(Node n1, String name) {
+        return findSubNode(n1,name,"","");
+    }
+    
+    public Node findSubNode(Node node, String name, String attribute, String attribute_value) {
+    try {
+     NodeList nodeList = node.getChildNodes();
+     for (int i = 0; i < nodeList.getLength(); i++) {
+         Node currentNode = nodeList.item(i);
+          if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
+            String nodeName = currentNode.getNodeName();
+                if (nodeName.equalsIgnoreCase(name)) {
+                    if (attribute.isEmpty()) {
+                        return currentNode;
+                    }  else {
+                        Element e1 =  (Element) currentNode;
+                        String s1 = e1.getAttribute(attribute);
+                            if (s1.equalsIgnoreCase(attribute_value)) {
+                                return currentNode;
+                            } 
+                            
+                    }
+                }
+          }
+     }
+    return null;
+ 
+} catch (Exception e) {
+    return null;
+}
+}
+    
+    
+ public Node findNode(Document doc, String tag_name, String attribute, String attribute_value) {
+    try {
+        NodeList nodeList = doc.getElementsByTagName(tag_name);
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                Node n1 = nodeList.item(i);
+                    if (n1.getNodeType() == Node.ELEMENT_NODE) {
+                        Element e1 =  (Element) n1;
+                            String s1 = e1.getAttribute(attribute);
+                                if (s1.equalsIgnoreCase(attribute_value)) {
+                                    return n1;
+                                } 
+
+                    }
+            }
+    throw new Exception (tag_name + " not found");      
+    } catch (Exception e) {
+    
+        log.severe(e.getMessage());
+        return null;
+    }
+ }
+ 
     }
 
- public void setProperty (String Name, String Value ) {
-        
- m_props.put(Name, Value);
- }
- 
- public void log_INFO(String message) {
-     m_log.log(Level.INFO, message);
- }
- public String getProperty (String name) {
-     return getProperty(name,"");
- }
- public String getProperty (String name, String valueIfEmpty) {
-     try {
-          String s1 = m_props.get(name);
-          if (s1 == null) {
-              throw new Exception (name + " not found in property bag");
-          }
-          return s1;
-     }
-     catch (Exception e) {
- //    m_log.log(Level.INFO, e.getMessage());
-     return valueIfEmpty;
-     }
- }
- public  boolean getProperty_bool(String name) {
-     
-    String s1 = getProperty (name);
-     
-    switch (s1.toUpperCase()) {
-        case "1": 
-        case "Y": case "YES":
-        case "T": case "TRUE" : 
-                return true;
-         case "0": case "":
-         case "N": case "NO":  
-         case "F": case "FALSE": 
-                return false;
-     }
-    return false;
- }
- 
-
- 
- public int getProperty_int(String name) {
-     return getProperty_int(name,0);
- }
- public int getProperty_int (String name, int valueIfEmpty) {
-     String s1 = getProperty(name);
-     if (s1.isEmpty()) {
-         return valueIfEmpty;
-     }
-     return Integer.valueOf(s1);
- }
-  public float getProperty_float (String name, float valueIfEmpty) {
-      String s1 = getProperty(name);
-     if (s1.isEmpty()) {
-         return valueIfEmpty;
-     } 
-     return Float.valueOf(getProperty(name));
- }
-  public float getProperty_float(String name) {
-     return getProperty_float(name,0);
- } 
-  
- protected void setProperties  (NamedNodeMap nodeAttribs) {
-     for (int j = 0; j < nodeAttribs.getLength(); j++) {
-         m_props.put(nodeAttribs.item(j).getNodeName(),nodeAttribs.item(j).getNodeValue());
-     }
- }
- protected void setProperties  (HashMap<String, String> hm) {
-     for (String key : hm.keySet()) {
-         m_props.put(key, hm.get(key));
-     }
- }
- 
- protected void passProperties(Node n1) {
-     Element e1 = (Element) n1;
-             
-     for (Map.Entry<String, String> entrySet : m_props.entrySet()) {
-             String key = entrySet.getKey();
-             String value = entrySet.getValue();
-                e1.setAttribute(key, value);
-                }
- }
- 
- final static String getAttributeValue(Node n1, String name) {
-  if (n1.getNodeType() == Node.ELEMENT_NODE) {
-        Element e = (Element) n1;
-        return e.getAttribute(name);
-  }
-  return "";
-  } 
- 
-final static  String getSubNodeValue(Node node, String nName ) {
-
-try {
-     NodeList nodeList = node.getChildNodes();
-     for (int i = 0; i < nodeList.getLength(); i++) {
-         Node currentNode = nodeList.item(i);
-          if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
-            String nodeName = currentNode.getNodeName();
-                if (nodeName == nName) {
-                 return currentNode.getTextContent();
-                }
-          }
-     }
-    return "";
- 
-} catch (Exception e) {
-    return "";
-}
-}
-
-final static Node getSubNode(Node node, String nName ) {
-
-try {
-     NodeList nodeList = node.getChildNodes();
-     for (int i = 0; i < nodeList.getLength(); i++) {
-         Node currentNode = nodeList.item(i);
-          if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
-            String nodeName = currentNode.getNodeName();
-                if (nodeName == nName) {
-                 return currentNode;
-                }
-          }
-     }
-    return null;
- 
-} catch (Exception e) {
-    return null;
-}
-}
-}
-
- class Header extends Base_Class {
+    class Header extends Base_Class {
     protected String m_tableIN;
     protected String m_tableOUT;
     protected List<String> m_columnsIN;
@@ -180,6 +261,8 @@ try {
     protected List<String> m_data; 
     protected List<String> m_units;
     protected List<String> m_types;
+    protected String m_fieldTOP;
+    protected String m_fieldBASE;
     
     public Header(){
     m_columnsIN = new ArrayList<String>();
@@ -188,6 +271,7 @@ try {
     m_data = new ArrayList<String>();
     m_units = new ArrayList<String>();
     m_id = new ArrayList<Integer>();
+   
     }  
     public Header (String[] Columns) {
        this(Columns, 16);
@@ -233,7 +317,7 @@ try {
               AddColumn(ColumnsIN[i],"",String.valueOf(constType),"","");
             } 
         } catch (Exception e) {
-           m_log.log(Level.SEVERE, e.getMessage());  
+           log.log(Level.SEVERE, e.getMessage());  
         }
     }
     public Header (String[] ColumnsIN, int[] Types) {
@@ -246,7 +330,7 @@ try {
                AddColumn(ColumnsIN[i],"",String.valueOf(Types[i]),"","");
             } 
         } catch (Exception e) {
-           m_log.log(Level.SEVERE, e.getMessage());  
+           log.log(Level.SEVERE, e.getMessage());  
         }
     }
     public Header (ResultSetMetaData md) {
@@ -264,14 +348,14 @@ try {
                     if (h1.contains(" ")) {
                        String h2 = h1;
                        h1 = h1.replaceAll(const_Blank,const_Empty);
-                       m_log.log(Level.INFO, "Blanks removed from table header [" + h2 + "]=[" + h1 + "]");
+                       log.log(Level.INFO, "Blanks removed from table header [" + h2 + "]=[" + h1 + "]");
                     }
                  AddColumn(h1,"", String.valueOf(c1),"",""); 
             }
         }
      
              catch(SQLException e) {
-             m_log.log(Level.SEVERE, e.getMessage());
+             log.log(Level.SEVERE, e.getMessage());
       }     
     } 
    
@@ -282,7 +366,7 @@ try {
              m_data.add(i, data[i]); 
             } 
         } catch (Exception e) {
-           m_log.log(Level.SEVERE, e.getMessage());  
+           log.log(Level.SEVERE, e.getMessage());  
         }
         
     }
@@ -293,7 +377,7 @@ try {
              m_units.add(i, units[i]); 
             } 
         } catch (Exception e) {
-           m_log.log(Level.SEVERE, e.getMessage());  
+           log.log(Level.SEVERE, e.getMessage());  
         }
         
     }
@@ -306,7 +390,7 @@ try {
             m_types.add(i, SQLType); 
             } 
         } catch (Exception e) {
-           m_log.log(Level.SEVERE, e.getMessage());  
+           log.log(Level.SEVERE, e.getMessage());  
         }
         
     }
@@ -413,4 +497,97 @@ try {
     }
 }
 
-
+class PropertyBag {
+      
+   protected HashMap<String, String> m_props;
+  
+ public PropertyBag(){
+      m_props = new HashMap<String, String>();
+ }
+  
+ public void setProperty (String Name, String Value ) {
+    m_props.put(Name, Value);
+   // String msg = "setProperty " + Name + ":" + Value ; 
+ }
+  
+  protected void setProperties  (NamedNodeMap nodeAttribs) {
+     for (int j = 0; j < nodeAttribs.getLength(); j++) {
+         m_props.put(nodeAttribs.item(j).getNodeName(),nodeAttribs.item(j).getNodeValue());
+     }
+ }   
+ 
+ public String getProperty (String name) {
+     return getProperty(name,"");
+ }
+ public String getProperty (String name, String valueIfEmpty) {
+     try {
+          String s1 = m_props.get(name);
+          if (s1 == null) {
+              throw new Exception (name + " not found in property bag");
+          }
+          return s1;
+     }
+     catch (Exception e) {
+ //    log.log(Level.INFO, e.getMessage());
+     return valueIfEmpty;
+     }
+ }
+ 
+ public static boolean getBoolean(String s1) {
+     switch (s1.toUpperCase()) {
+        case "1": 
+        case "Y": case "YES":
+        case "T": case "TRUE" :
+        return true;
+        
+        case "0": case "":
+        case "N": case "NO":  
+        case "F": case "FALSE": 
+                return false;
+     }
+    return false;
+ }
+ public  boolean getProperty_bool(String name) {
+     
+    String s1 = getProperty (name);
+    return getBoolean(s1);
+       
+ }
+  
+ public int getProperty_int(String name) {
+     return getProperty_int(name,0);
+ }
+ public int getProperty_int (String name, int valueIfEmpty) {
+     String s1 = getProperty(name);
+     if (s1.isEmpty()) {
+         return valueIfEmpty;
+     }
+     return Integer.valueOf(s1);
+ }
+  public float getProperty_float (String name, float valueIfEmpty) {
+      String s1 = getProperty(name);
+     if (s1.isEmpty()) {
+         return valueIfEmpty;
+     } 
+     return Float.valueOf(getProperty(name));
+ }
+  public float getProperty_float(String name) {
+     return getProperty_float(name,0);
+ }   
+  protected void passProperties(Node n1) {
+     Element e1 = (Element) n1;
+             
+     for (Map.Entry<String, String> entrySet : m_props.entrySet()) {
+             String key = entrySet.getKey();
+             String value = entrySet.getValue();
+                e1.setAttribute(key, value);
+                }
+ }   
+  final static String getAttributeValue(Node n1, String name) {
+  if (n1.getNodeType() == Node.ELEMENT_NODE) {
+        Element e = (Element) n1;
+        return e.getAttribute(name);
+  }
+  return "";
+  }    
+}

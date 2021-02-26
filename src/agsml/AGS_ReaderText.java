@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import java.util.Arrays;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.File;
 
 class AGS_ReaderText extends AGS_Base {
 //    private static final Logger log = Logger.getLogger(.class.getName() );
@@ -48,10 +49,31 @@ class AGS_ReaderText extends AGS_Base {
     protected final String const_TableIdentifierAGS4 = "GROUP";
     protected final String const_HeaderIdentifierAGS4 = "HEADING";
     
-    protected AGS_Dictionary.AGSVersion ags_version = AGS_Dictionary.AGSVersion.AGS31a;
+    protected final int MAX_FILENAME_LEN = 1056;
+    
+    protected Constants.AGSVersion ags_version = Constants.AGSVersion.AGS31a;
     
     public AGS_ReaderText(String str){
-
+        /* test if str is file or ags_string */
+        try {
+            if (str.length() < MAX_FILENAME_LEN) {
+                File f = new File(str);
+                if (f.isFile()) { 
+                    readFile(str);
+                } else {
+                readString(str);
+                }
+            } else {
+                readString(str);
+            } 
+        } catch(Exception e) {
+         // if any error occurs
+         e.printStackTrace();
+        }
+    }
+    
+    private void readString(String str) {
+    
     m_str = str;
     String lines[] = m_str.split("\\n");
     m_ags = Arrays.asList(lines);
@@ -62,28 +84,34 @@ class AGS_ReaderText extends AGS_Base {
     find_tables();
 
     }
-    public AGS_Dictionary.AGSVersion findAGSVersion() {
+    public Constants.AGSVersion findAGSVersion() {
      
-        ags_version=AGS_Dictionary.AGSVersion.NONE;
+        ags_version=Constants.AGSVersion.NONE;
      
         for (int i=0; i < m_ags.size(); i++) {
            String line = m_ags.get(i);
            if (line.contains("*HOLE_ID")){
-               ags_version = AGS_Dictionary.AGSVersion.AGS31a;
+               ags_version = Constants.AGSVersion.AGS31a;
                break;
            }
            if (line.contains("LOCA_ID")){
-               ags_version = AGS_Dictionary.AGSVersion.AGS404;
+               ags_version = Constants.AGSVersion.AGS404;
                break;
            }
         }
         return ags_version;
     }
     
-    public AGS_Dictionary.AGSVersion AGSVersion() {
+    public Constants.AGSVersion AGSVersion() {
         return ags_version;    
     }
-    
+    public int AGSLines() {
+        if (m_ags == null) {
+        return 0;
+        } else {
+        return m_ags.size();
+        }
+    }
     private void readFile(String filename) {
         m_ags = new ArrayList<String>();
         StringBuilder sb = new StringBuilder();
@@ -99,6 +127,7 @@ class AGS_ReaderText extends AGS_Base {
             
             m_tables = new LinkedHashMap<String, Integer>();
             m_rowdata = new ArrayList<String>();
+            
             findAGSVersion();
             find_tables();
         }
@@ -191,11 +220,11 @@ class AGS_ReaderText extends AGS_Base {
     }
     public int find_headers() {
         
-        if (ags_version.toInt() <= AGS_Dictionary.AGSVersion.AGS31a.toInt()) {
+        if (ags_version.toInt() <= Constants.AGSVersion.AGS31a.toInt()) {
            return find_headersAGS3();
         };
         
-        if (ags_version.toInt() > AGS_Dictionary.AGSVersion.AGS31a.toInt()) {
+        if (ags_version.toInt() > Constants.AGSVersion.AGS31a.toInt()) {
            // return find_headersAGS4();
            return -1;
         };
@@ -204,10 +233,10 @@ class AGS_ReaderText extends AGS_Base {
     }
     
     public int find_tables() {
-        if (ags_version.toInt() <= AGS_Dictionary.AGSVersion.AGS31a.toInt()) {
-           return find_tablesAGS3();
+        if (ags_version.toInt() <= Constants.AGSVersion.AGS31a.toInt()) {
+          // return find_tablesAGS3();
         };
-        if (ags_version.toInt() > AGS_Dictionary.AGSVersion.AGS31a.toInt()) {
+        if (ags_version.toInt() > Constants.AGSVersion.AGS31a.toInt()) {
            // return find_tablesAGS4();
            return -1;
         };

@@ -31,7 +31,7 @@ class SQL_Writer extends Base_Writer{
         setProperty(AGS_OUTPUTFILE,s1);
     }
     
- protected Header convertHeaderGINT(ResultSetMetaData rsmd, String tname1, AGS_Dictionary.Lang Lang) {
+ protected Header convertHeaderGINT(ResultSetMetaData rsmd, String tname1, agsml.Constants.Lang Lang) {
  try {
         Header r = new Header();    
         String fname2="";
@@ -67,7 +67,7 @@ class SQL_Writer extends Base_Writer{
  }  
  }
  
- protected Header convertHeaderGINT(Collection<String> header1, String tname1, AGS_Dictionary.Lang Lang) {
+ protected Header convertHeaderGINT(Collection<String> header1, String tname1,agsml.Constants.Lang Lang) {
  try {
         Header r = new Header();    
         String fname2="";

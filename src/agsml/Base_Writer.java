@@ -6,42 +6,53 @@ import java.util.logging.Level;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Files;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 /**
  *
  * @author thomsonsj
  */
+
 class Base_Writer extends Base_Class{
     
     protected AGS_Dictionary m_dic;
     protected AGS_DataStructure m_ds;
     protected Set m_hs;
-    
+        
     protected String m_onlyHoleId = "";
     protected NodeList m_holeList;
     protected String[] m_Binary64Fields;
     
-    public final static String AGS_HOLELIST = "HoleList";
-    public final static String AGS_HOLELISTFILE = "HoleListFile";
+    public final static String AGS_HOLELIST = Constants.AGS_HOLELIST;
+    public final static String AGS_HOLELISTFILE = Constants.AGS_HOLELISTFILE;
     
-    public final static String AGS_OUTPUTFOLDER = "AGSOutputAGSMLFolder";
-    public final static String AGS_OUTPUTFILE = "AGSOutputAGSMLFile";
-    public final static String AGS_OUTPUTFIELD = "AGSOutputAGSMLField";
-    public final static String AGS_OUTPUT64BINARYFIELDS = "AGSOutput64BinaryFields";
+    public final static String AGS_OUTPUTFOLDER = Constants.AGS_OUTPUTFOLDER;
+    public final static String AGS_OUTPUTFILE = Constants. AGS_OUTPUTFILE;
+    public final static String AGS_OUTPUTFILEFOLDER = Constants.AGS_OUTPUTFILEFOLDER;
     
-    public final static String AGS_PROJECTID = "AGSProjectID";
-    public final static String AGS_OUTPUTFILEBASEDONFIELD = "AGSOutputAGSMLFileFromField";
+    public final static String AGS_OUTPUTFILEOVERWRITE = Constants.AGS_OUTPUTFILEOVERWRITE;
+    public final static String AGS_OUTPUTFILEDATETIMESTAMP = Constants.AGS_OUTPUTFILEDATETIMESTAMP;
     
-    public final static String AGS_DATASTRUCTURE = "DataStructureAGSML";
+    public final static String AGS_OUTPUTFIELD = Constants.AGS_OUTPUTFIELD;
+    public final static String AGS_OUTPUT64BINARYFIELDS = Constants.AGS_OUTPUT64BINARYFIELDS;
     
-    public final static String AGS_DATASTRUCTUREFILENAME = "AGSDataStructureFile";
-    public final static String AGS_DATASTRUCTUREID = "AGSDataStructureID";
+    public final static String AGS_PROJECTID = Constants.AGS_PROJECTID ;
+    public final static String AGS_OUTPUTFILEBASEDONFIELD = Constants.AGS_OUTPUTFILEBASEDONFIELD;
     
-    public final static String AGS_DICTIONARYFILENAME = "AGSDictionaryFile";
-    public final static String AGS_DICTIONARYID = "AGSDictionaryID";
+    public final static String AGS_DATASTRUCTURE = Constants.AGS_DATASTRUCTURE;
     
-    public final static String AGS_DATASOURCE = "AGSDataSource"; 
-    public final static String AGS_STRICTLYONLY = "AGSFieldsOnly";
+    public final static String AGS_DATASTRUCTUREFILENAME = Constants.AGS_DATASTRUCTUREFILENAME;
+    public final static String AGS_DATASTRUCTUREID = Constants.AGS_DATASTRUCTUREID;
+    public final static String AGS_DATASTRUCTURESERIESID = Constants.AGS_DATASTRUCTURESERIESID;
+    
+    public final static String AGS_DICTIONARYFILENAME = Constants.AGS_DICTIONARYFILENAME;
+    public final static String AGS_DICTIONARYID = Constants.AGS_DICTIONARYID;
+    
+    public final static String AGS_DATASOURCE = Constants.AGS_DATASOURCE; 
+    public final static String AGS_STRICTLYONLY = Constants.AGS_STRICTLYONLY;
     
     
     public String onlyHoleId() {
@@ -76,12 +87,16 @@ class Base_Writer extends Base_Class{
         }
     }
      boolean IsBinary64Field (String s1) {
-          for (int i = 0; i < m_Binary64Fields.length; i++) {
+          
+        if (m_Binary64Fields == null) {
+              return false;
+        }
+        for (int i = 0; i < m_Binary64Fields.length; i++) {
              if (m_Binary64Fields[i].equalsIgnoreCase(s1)) {
                  return true;
              }
-         }
-       return false;
+        }
+        return false;
  }
     
     public String AGSDataSource() {
@@ -97,6 +112,12 @@ class Base_Writer extends Base_Class{
       setProperty(AGS_STRICTLYONLY,YN)  ;
     }
     
+    void setAGSMLOutputFileOverwrite(String YN) {
+      setProperty(AGS_OUTPUTFILEOVERWRITE,YN)  ;
+    }
+    void setAGSMLOutputFileAddDateTimeStamp(String YN) {
+      setProperty(AGS_OUTPUTFILEDATETIMESTAMP,YN)  ;
+    }
     public boolean AGSFieldsOnly() {
         return getProperty_bool(AGS_STRICTLYONLY);
     }
@@ -146,12 +167,12 @@ class Base_Writer extends Base_Class{
             String xml_node = getProperty (AGS_DICTIONARYID);
             
             m_dic = new AGS_Dictionary (xml_file,xml_node);
-            log_INFO("AGS_Dictionary set (File:" + xml_file + " Node:" + xml_node +")");
+            log.info("AGS_Dictionary set (File:" + xml_file + " Node:" + xml_node +")");
             return 1;
         } 
 
         catch (Exception e) {
-        m_log.log(Level.SEVERE, e.getMessage());
+        log.log(Level.SEVERE, e.getMessage());
         return -1;
         } 
      }
@@ -159,11 +180,11 @@ class Base_Writer extends Base_Class{
         try {
             m_dic = new AGS_Dictionary();
             m_dic.setRoot(n1);
-            log_INFO("AGS_Dictionary set (Node:" + n1.toString() + ")");
+            log.info("AGS_Dictionary set (Node:" + n1.toString() + ")");
             return 1;
         }
         catch (Exception e) {
-            m_log.log(Level.SEVERE, e.getMessage());
+            log.log(Level.SEVERE, e.getMessage());
             return -1;
         }
     }
@@ -175,28 +196,43 @@ class Base_Writer extends Base_Class{
     public void setAGSDataStructureId(String xml_node){
         setProperty (AGS_DATASTRUCTUREID, xml_node);  
     }
+    public void setAGSDataStructureSeriesId(String xml_node){
+        setProperty (AGS_DATASTRUCTURESERIESID, xml_node);  
+    }
     public void setAGSDataStructure(String xml_file, String xml_node){
         setProperty (AGS_DATASTRUCTUREFILENAME, xml_file); 
         setProperty (AGS_DATASTRUCTUREID, xml_node);  
+    }
+    public void setAGSDataStructureSeries(String xml_file, String xml_node){
+        setProperty (AGS_DATASTRUCTUREFILENAME, xml_file); 
+        setProperty (AGS_DATASTRUCTURESERIESID, xml_node);  
     }
     public int getAGSDataStructure() {
         try {
             
             String xml_file = getProperty(AGS_DATASTRUCTUREFILENAME); 
-            String xml_node = getProperty(AGS_DATASTRUCTUREID);
-
+            String xml_node= getProperty(AGS_DATASTRUCTUREID);
+            String xml_node_series = getProperty(AGS_DATASTRUCTURESERIESID);
+            
+            if (!xml_node.isEmpty()) {
             m_ds = new AGS_DataStructure (xml_file,  xml_node);
+            } 
+            
+            if (xml_node.isEmpty() && !xml_node_series.isEmpty() && m_dic!=null) {
+             m_ds = new AGS_DataStructure (xml_file,  xml_node_series, m_dic.getAGSVersion());
+            }  
+             
             m_hs = new HashSet();
             
             setProperties(m_ds.RootNode().getAttributes());
             
-            log_INFO("AGS_DataStructure set (File:" + xml_file + " Node:" + xml_node +")");
+            log.info("AGS_DataStructure set (File:" + xml_file + " Node:" + xml_node +")");
             
             return 1;
         } 
 
         catch (Exception e) {
-        m_log.log(Level.SEVERE, e.getMessage());
+        log.log(Level.SEVERE, e.getMessage());
         return -1;
         }
     }
@@ -205,12 +241,12 @@ class Base_Writer extends Base_Class{
             m_ds = new AGS_DataStructure();
             m_ds.setRoot(n1);
             
-            log_INFO("AGS_DataStructure set (Node:" + n1.toString() + ")");
+            log.info("AGS_DataStructure set (Node:" + n1.toString() + ")");
             
             return 1;
         }
         catch (Exception e) {
-             m_log.log(Level.SEVERE, e.getMessage());
+             log.log(Level.SEVERE, e.getMessage());
              return -1;
         }
     }
@@ -228,21 +264,39 @@ class Base_Writer extends Base_Class{
     
     public void setOutputFileFolder (String s1) {
         try {
-            File f = new File(s1);
-
-            if (f.isDirectory()) {
+            Path path = new File(s1).toPath();
+         
+            if (Files.isDirectory(path)) {
             setProperty(AGS_OUTPUTFOLDER,s1);
-            } 
-
-            if (f.isFile()) {
+            } else {
             setProperty(AGS_OUTPUTFILE,s1);
             }
         }
         catch (Exception e){
-             m_log.log(Level.SEVERE, e.getMessage());
+             log.log(Level.SEVERE, e.getMessage());
         }
     }
-    
+    public final String getFileName(String filename, boolean Overwrite, boolean IncludeDateStamp) {
+        
+        int counter = 1;       
+         
+        String ext = filename.substring(filename.lastIndexOf(".") + 1,filename.length());
+        String body = filename.substring(0, filename.lastIndexOf("."));
+        
+        if (IncludeDateStamp) {
+            String pattern = "yyMMdd-hhmmss-SSS";
+            SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+            body += sdf.format(new Date());   
+        } 
+        File file = new File (body + '.' + ext);
+        
+        while (!Overwrite && file.exists()) {
+             file = new File (body + String.format("0000",counter) + "." + ext);
+             counter += 1; 
+        }
+        
+        return file.getAbsolutePath();
+      } 
     protected NodeList getHoleList (Node n1) {
       try {
         if (n1 != null) {
@@ -268,7 +322,7 @@ class Base_Writer extends Base_Class{
         }   
   
         catch (Exception e)  {
-         m_log.log(Level.SEVERE, e.getMessage());         
+         log.log(Level.SEVERE, e.getMessage());         
         return null;
         }
   }
