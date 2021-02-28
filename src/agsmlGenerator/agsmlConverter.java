@@ -126,7 +126,7 @@ private static String startServer(int port) {
     String retMessage;
  //   Logger log = Logger.getLogger("AGS Server");
     try {
-        AGS_Server as = new AGS_Server(port);
+       AGS_Server as = new AGS_Server(port,"","");
        as.run();
        retMessage = "AGS Server started on port:" + port; 
     } catch (Exception e) {
