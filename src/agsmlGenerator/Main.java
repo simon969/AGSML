@@ -338,8 +338,17 @@ private static Properties FindAndReplace(Properties props, String find, String r
                 props.load(input);
                 return props;
          }
-           
-           
+         
+        
+        String externalFileName = System.getProperty("agsml.properties");
+        if (externalFileName.length()>0) {
+            InputStream fin = new FileInputStream(new File(externalFileName));
+            System.out.println("Properties loaded from externalFileName " + externalFileName + " ("  + new java.util.Date() + ")");
+            props.load(fin); 
+            return props;
+        }   
+        
+        
          System.out.println("Unable to find file " + configFile + " (" + new java.util.Date() + ")");
          return null;
 

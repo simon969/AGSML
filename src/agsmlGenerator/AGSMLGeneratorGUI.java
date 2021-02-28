@@ -710,7 +710,7 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
         boolean retvar = false;
         
         AGS_Converter ac = new AGS_Converter(); 
-        ac.set_LoggerTextArea(log, Level.FINE);
+        // ac.set_LoggerTextArea(log, Level.FINE);
         
         if (!this.jTextProcessFile.getText().isEmpty() && !jTextProcessFile.getText().equalsIgnoreCase("...ProcessFile")) {
             ac.Process (jTextProcessFile.getText());
@@ -768,7 +768,7 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
                                 AGS_Client ac =  new AGS_Client (server, port);
                                 ags_clients.add(ac);
                                // ac.setAGSData(ags_data);
-                               ac.setAGSFile(jTextInputSource.getText());
+                               ac.setAGSFileIN(jTextInputSource.getText());
                                ac.setXMLDatabaseSave(jTextDbConnection.getText(), 
                                                      jTextPStatement.getText());
                                ac.start();
@@ -878,11 +878,12 @@ public class AGSMLGeneratorGUI extends javax.swing.JFrame {
             ags_server= null;
         }
 
-        ags_server = new AGS_Server (port);
-        ags_server.setDictionaryFile(jTextDictionaryFile.getText());
-        ags_server.setDefaultDataStructure(jComboBoxAGSMLDataStructureSeries.getSelectedItem().toString());
-        ags_server.setLoggerTextArea(log, Level.FINE);
-        ags_server.setClientTree(jTree1);
+        ags_server = new AGS_Server ();
+        ags_server.setPort(port);
+        ags_server.setDictionarySource(jTextDictionaryFile.getText());
+        ags_server.setDataStructureSeries(jComboBoxAGSMLDataStructureSeries.getSelectedItem().toString());
+       // ags_server.setLogger(log);
+       // ags_server.setClientTree(jTree1);
         ags_server.start();
 
     }//GEN-LAST:event_jButtonStartServerActionPerformed

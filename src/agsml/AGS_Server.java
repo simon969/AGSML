@@ -104,7 +104,12 @@ public class AGS_Server extends Thread {
     }  
  public AGS_Server () {
    }
-    
+  public AGS_Server (int port) {
+  
+      LISTENING_PORT = port;
+  
+  }
+  
   public AGS_Server (int port, String xml_dictionary_source, String xml_datastructure) {
     
     LISTENING_PORT = port;
