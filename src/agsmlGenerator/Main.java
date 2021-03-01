@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 import java.util.Properties;
 import java.util.Set;
@@ -341,7 +343,8 @@ private static Properties FindAndReplace(Properties props, String find, String r
          
         
         String externalFileName = System.getProperty("agsml.properties");
-        if (externalFileName.length()>0) {
+        
+        if (externalFileName != null) {
             InputStream fin = new FileInputStream(new File(externalFileName));
             System.out.println("Properties loaded from externalFileName " + externalFileName + " ("  + new java.util.Date() + ")");
             props.load(fin); 
@@ -350,6 +353,7 @@ private static Properties FindAndReplace(Properties props, String find, String r
         
         
          System.out.println("Unable to find file " + configFile + " (" + new java.util.Date() + ")");
+         printURLClassLoader();
          return null;
 
         } catch (IOException ex) {
@@ -358,6 +362,17 @@ private static Properties FindAndReplace(Properties props, String find, String r
         }
 
     }
+ private static void printURLClassLoader() {
+            
+            ClassLoader cl = ClassLoader.getSystemClassLoader();
+            
+            URL[] urls = ((URLClassLoader)cl).getURLs();
+            for(URL url: urls){
+        	System.out.println(url.getFile());
+            }
+    
+ }
+ 
 public static void startServer(String [] args) {
     int i = 0;
     String arg;
