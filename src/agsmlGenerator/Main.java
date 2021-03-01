@@ -209,7 +209,7 @@ public static void initLogger(String log_folder, String format){
     try {
         if (log_folder != "") {   
             FileHandler fh;      
-            AGS_Data f = new AGS_Data(log_folder + "\\log_.log");
+            AGS_Data f = new AGS_Data(log_folder + "log_.log");
             f.addDateStamp(Constants.LOG_DATEFORMAT);
             String log_file = f.File().getAbsolutePath();
             // This block configure the logger with handler and formatter  
@@ -358,7 +358,7 @@ private static Properties FindAndReplace(Properties props, String find, String r
                 
         if (configPathFile.exists()) {        
             InputStream lin = new FileInputStream(configPathFile);
-            System.out.println("Properties loaded from linuxResourcePath " + linuxResourcePath + configFile + " ("  + new java.util.Date() + ")");
+            System.out.println("Properties loaded from linuxResourcePath " + configPathFile.getAbsolutePath() + " ("  + new java.util.Date() + ")");
             props.load(lin); 
             return props;
         }
