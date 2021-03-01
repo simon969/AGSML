@@ -333,7 +333,7 @@ private static Properties FindAndReplace(Properties props, String find, String r
                 }
         }       
         
-        printURLClassLoader();
+       
         
         InputStream input = Main.class.getClassLoader().getResourceAsStream(configFile);
         
@@ -342,8 +342,7 @@ private static Properties FindAndReplace(Properties props, String find, String r
                 props.load(input);
                 return props;
          }
-         
-        
+           
         String externalFileName = System.getProperty("agsml.properties");
         
         if (externalFileName != null) {
@@ -353,9 +352,18 @@ private static Properties FindAndReplace(Properties props, String find, String r
             return props;
         }   
         
+        String linuxResourcePath = "/home/opc/agsml/resource/";
+        
+        InputStream lin = new FileInputStream(new File( linuxResourcePath + configFile));
+        if (lin != null) {
+            System.out.println("Properties loaded from linuxResourcePath " + linuxResourcePath + configFile + " ("  + new java.util.Date() + ")");
+            props.load(lin); 
+            return props;
+        }
+          
         
          System.out.println("Unable to find file " + configFile + " (" + new java.util.Date() + ")");
-       
+         printURLClassLoader();
          return null;
 
         } catch (IOException ex) {
