@@ -333,6 +333,8 @@ private static Properties FindAndReplace(Properties props, String find, String r
                 }
         }       
         
+        printURLClassLoader();
+        
         InputStream input = Main.class.getClassLoader().getResourceAsStream(configFile);
         
         if (input !=null) {
@@ -353,7 +355,7 @@ private static Properties FindAndReplace(Properties props, String find, String r
         
         
          System.out.println("Unable to find file " + configFile + " (" + new java.util.Date() + ")");
-         printURLClassLoader();
+       
          return null;
 
         } catch (IOException ex) {
