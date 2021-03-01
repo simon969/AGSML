@@ -354,7 +354,7 @@ private static Properties FindAndReplace(Properties props, String find, String r
         
         String linuxResourcePath = "/home/opc/agsml/resources/";
         
-        configPathFile = new File( linuxResourcePath + "l" + configFile);
+        configPathFile = new File( linuxResourcePath + configFile.replace(".properties", "_linux.properties"));
                 
         if (configPathFile.exists()) {        
             InputStream lin = new FileInputStream(configPathFile);
