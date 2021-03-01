@@ -352,10 +352,12 @@ private static Properties FindAndReplace(Properties props, String find, String r
             return props;
         }   
         
-        String linuxResourcePath = "/home/opc/agsml/resource/";
+        String linuxResourcePath = "/home/opc/agsml/resources/";
         
-        InputStream lin = new FileInputStream(new File( linuxResourcePath + configFile));
-        if (lin != null) {
+        configPathFile = new File( linuxResourcePath + "l" + configFile);
+                
+        if (configPathFile.exists()) {        
+            InputStream lin = new FileInputStream(configPathFile);
             System.out.println("Properties loaded from linuxResourcePath " + linuxResourcePath + configFile + " ("  + new java.util.Date() + ")");
             props.load(lin); 
             return props;
