@@ -210,6 +210,7 @@ public static void initLogger(String log_folder, String format){
         if (log_folder != "") {   
             FileHandler fh;      
             AGS_Data f = new AGS_Data(log_folder + "log_.log");
+            if (log_folder.contains("/")) {f.setPathSeparator("/");};
             f.addDateStamp(Constants.LOG_DATEFORMAT);
             String log_file = f.File().getAbsolutePath();
             // This block configure the logger with handler and formatter  
