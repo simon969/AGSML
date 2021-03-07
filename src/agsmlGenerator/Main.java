@@ -202,7 +202,7 @@ public static void initLogger(String log_folder, String format){
     
     System.setProperty(Constants.LOG_SIMPLE_FORMAT_JAVA_UTIL, format);
     
-    System.out.println("config log_folder: " + log_folder);
+    
     
     log = Logger.getLogger("agsmlGenerator");
     
@@ -364,6 +364,7 @@ private static Properties FindAndReplace(Properties props, String find, String r
             InputStream lin = new FileInputStream(configPathFile);
             System.out.println("Properties loaded from linuxResourcePath " + configPathFile.getAbsolutePath() + " ("  + new java.util.Date() + ")");
             props.load(lin); 
+            System.out.println("config log_folder: " + props.getProperty(Constants.LOG_FOLDER));
             return props;
         }
           
