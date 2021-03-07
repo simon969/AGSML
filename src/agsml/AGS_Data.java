@@ -148,9 +148,13 @@ public class AGS_Data {
   }
   public String getFullOutputPath(){
        if (!output_folder.isEmpty()) {
-        File f1 = new File (output_folder + _pathSeparator + source);
-           return f1.getAbsolutePath();
-         }
+            if (output_folder.endsWith(_pathSeparator)) {
+               File f1 = new File (output_folder + source);
+               return f1.getAbsolutePath();
+            }
+               File f1 = new File (output_folder + _pathSeparator + source);
+               return f1.getAbsolutePath();
+        }
       return Constants.EMPTY;
   }
   
@@ -159,8 +163,12 @@ public class AGS_Data {
           return f.getAbsolutePath();
       }
       if (resource_folder!=null) {
-        File f1 = new File (resource_folder + _pathSeparator + source);
-           return f1.getAbsolutePath();
+            if (resource_folder.endsWith(_pathSeparator)) {
+               File f1 = new File (resource_folder + source);
+               return f1.getAbsolutePath(); 
+            }  
+               File f1 = new File (resource_folder + _pathSeparator + source);
+               return f1.getAbsolutePath();
       }
       return Constants.EMPTY;
   }
