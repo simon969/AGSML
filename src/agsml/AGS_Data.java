@@ -66,11 +66,11 @@ public class AGS_Data {
   public AGS_Data(String str) {
       try {
         
-        source= str;
+        source = str;
         setPathSeparator(source);
         
-        f = new File (str);
-        u = new URL(str);
+        f = new File (source);
+        u = new URL(source);
       } catch (Exception e) {
           
       }
@@ -119,10 +119,13 @@ public class AGS_Data {
         setPathSeparator(resource_folder);
     }
     
-    public void setPathSeparator(String s1) {
+    private void setPathSeparator(String s1) {
+        
         if (s1.contains(PATH_SEPARATOR_LINUX)) {
             _pathSeparator = PATH_SEPARATOR_LINUX;
+            return;
         }
+        
         _pathSeparator = PATH_SEPARATOR_WINDOWS;
     }
     
