@@ -43,8 +43,12 @@ public class AGS_Data {
   private String source;
   private String resource_folder;
   private String output_folder;
-  private final String extensionSeparator = ".";
-  private String _pathSeparator = "\\";
+  private final String _extensionSeparator = ".";
+  
+  private final String PATH_SEPARATOR_LINUX = "/";
+  private final String PATH_SEPARATOR_WINDOWS = "\\";
+  
+  private String _pathSeparator = PATH_SEPARATOR_WINDOWS;
   private final String ASPNET_returnpage = "ReturnPage";
   public enum OpenType {
       AppendTodaysDate,
@@ -61,8 +65,10 @@ public class AGS_Data {
   }
   public AGS_Data(String str) {
       try {
+        
         source= str;
-        if (source.contains("/")) {_pathSeparator = "/";};
+        setPathSeparator(source);
+        
         f = new File (str);
         u = new URL(str);
       } catch (Exception e) {
@@ -110,7 +116,16 @@ public class AGS_Data {
   }
     public void setResourceFolder(String s1) {
         resource_folder = s1;
+        setPathSeparator(resource_folder);
     }
+    
+    public void setPathSeparator(String s1) {
+        if (s1.contains(PATH_SEPARATOR_LINUX)) {
+            _pathSeparator = PATH_SEPARATOR_LINUX;
+        }
+        _pathSeparator = PATH_SEPARATOR_WINDOWS;
+    }
+    
     public String getResourceFolder() {
         if (resource_folder==null){
             resource_folder = Path();
@@ -119,12 +134,13 @@ public class AGS_Data {
     }
     public void setOutputFolder(String s1) {
         output_folder = s1;
+        setPathSeparator(output_folder);
     }
   public String FileExtension() {
       if (source==null)
           return null;
     f = new File(source);
-    int from = f.getAbsolutePath().lastIndexOf(extensionSeparator) + 1;
+    int from = f.getAbsolutePath().lastIndexOf(_extensionSeparator) + 1;
     int to = f.getAbsolutePath().length();
     return f.getAbsolutePath().substring(from, to);
   }
@@ -137,7 +153,7 @@ public class AGS_Data {
      return f.getName();
   }
   public String FileNameNoExtension() { // gets filename without extension
-    int dot = f.getAbsolutePath().lastIndexOf(extensionSeparator);
+    int dot = f.getAbsolutePath().lastIndexOf(_extensionSeparator);
     int sep = f.getAbsolutePath().lastIndexOf(_pathSeparator) + 1;
     return f.getAbsolutePath().substring(sep, dot);
   }
@@ -221,10 +237,10 @@ public class AGS_Data {
             String path = Path();
             String body = FileNameNoExtension();
                 
-            File f2 = new File (path + _pathSeparator + body + extensionSeparator + ext);
+            File f2 = new File (path + _pathSeparator + body + _extensionSeparator + ext);
 
             while (f2.exists()) {
-                 f2 = new File (path + _pathSeparator + body + String.format("%d",counter) +  extensionSeparator + ext);
+                 f2 = new File (path + _pathSeparator + body + String.format("%d",counter) +  _extensionSeparator + ext);
                  counter += 1; 
             }
             
@@ -255,7 +271,7 @@ public class AGS_Data {
             
             SimpleDateFormat sdf = new SimpleDateFormat(pattern);
             body += sdf.format(new Date());   
-            String new_filename = folder + _pathSeparator + body + extensionSeparator + ext;
+            String new_filename = folder + _pathSeparator + body + _extensionSeparator + ext;
             
             File f2 = new File (new_filename);
 
