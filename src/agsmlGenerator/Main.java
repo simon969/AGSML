@@ -211,7 +211,6 @@ public static void initLogger(String log_folder, String format){
     try {
         if (log_folder != "") {   
             AGS_Data f = new AGS_Data(log_folder + "log_.log");
-            if (log_folder.contains("/")) {f.setPathSeparator("/");};
             f.addDateStamp(Constants.LOG_DATEFORMAT);
             String log_file = f.File().getAbsolutePath();
             System.out.println("initialising logger with file: " + log_file);

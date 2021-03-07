@@ -62,6 +62,7 @@ public class AGS_Data {
   public AGS_Data(String str) {
       try {
         source= str;
+        if (source.contains("/")) {_pathSeparator = "/";};
         f = new File (str);
         u = new URL(str);
       } catch (Exception e) {
@@ -69,9 +70,7 @@ public class AGS_Data {
       }
     
   }
-  public void setPathSeparator(String PathSeparator) {
-      _pathSeparator = PathSeparator;
-  }
+   
   public File File() {
       return f;
   }
