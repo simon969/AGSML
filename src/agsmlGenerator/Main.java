@@ -188,7 +188,7 @@ public static void initLogger(String log_folder, String format){
 //   https://stackoverflow.com/questions/15758685/how-to-write-logs-in-text-file-when-using-java-util-logging-logger
     if (config != null) {
         if (format=="") {
-        format = config.getProperty("java.util.logging.SimpleFormatter.format");
+        format = config.getProperty(Constants.LOG_SIMPLE_FORMAT_JAVA_UTIL);
     }
         if (log_folder=="") {
         log_folder = config.getProperty(Constants.LOG_FOLDER);
@@ -200,7 +200,7 @@ public static void initLogger(String log_folder, String format){
         format = Constants.LOG_FORMAT;
     }
     
-    System.setProperty("java.util.logging.SimpleFormatter.format", format);
+    System.setProperty(Constants.LOG_SIMPLE_FORMAT_JAVA_UTIL, format);
     
     log = Logger.getLogger("agsmlGenerator");
     
@@ -208,7 +208,6 @@ public static void initLogger(String log_folder, String format){
       
     try {
         if (log_folder != "") {   
-            FileHandler fh;     
             System.out.println("config log_folder: " + log_folder);
             AGS_Data f = new AGS_Data(log_folder + "log_.log");
             if (log_folder.contains("/")) {f.setPathSeparator("/");};
@@ -216,7 +215,7 @@ public static void initLogger(String log_folder, String format){
             String log_file = f.File().getAbsolutePath();
             System.out.println("initialising logger with file: " + log_file);
             // This block configure the logger with handler and formatter  
-            fh = new FileHandler(log_file);  
+            FileHandler fh = new FileHandler(log_file);  
             log.addHandler(fh);
         }
         
