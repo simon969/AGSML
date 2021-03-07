@@ -90,6 +90,7 @@ public final class Constants {
     public final static String LOG_FOLDER = "LogFolder";
     public final static String LOG_FORMAT = "[%1$tF %1$tT] [%4$-7s] %5$s %n";
     public final static String LOG_DATEFORMAT = "yyyyMMddHHmm";
+    public final static String LOG_SIMPLE_FORMAT_JAVA_UTIL = "java.util.logging.SimpleFormatter.format";
     public final static String USAGE = "Usage: agsmlConverter [-ags ags_inputfilename] [-dic dictionary_filename] [-ds datastructure_nodename] [-xml xml_outputfilename] [-start port] [-stop] [-process filename] [-gui] [-fileupload] [-server name port] [-help]";
     public final static String RESOURCE_FOLDER_REPLACE = "[RESOURCEFOLDER]";
     public final static String RESOURCE_FOLDER = "ResourceFolder";
