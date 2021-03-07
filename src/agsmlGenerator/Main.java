@@ -210,7 +210,6 @@ public static void initLogger(String log_folder, String format){
       
     try {
         if (log_folder != "") {   
-            System.out.println("config log_folder: " + log_folder);
             AGS_Data f = new AGS_Data(log_folder + "log_.log");
             if (log_folder.contains("/")) {f.setPathSeparator("/");};
             f.addDateStamp(Constants.LOG_DATEFORMAT);
@@ -364,7 +363,6 @@ private static Properties FindAndReplace(Properties props, String find, String r
             InputStream lin = new FileInputStream(configPathFile);
             System.out.println("Properties loaded from linuxResourcePath " + configPathFile.getAbsolutePath() + " ("  + new java.util.Date() + ")");
             props.load(lin); 
-            System.out.println("config log_folder: " + props.getProperty(Constants.LOG_FOLDER));
             return props;
         }
           
