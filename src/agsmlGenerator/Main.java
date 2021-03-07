@@ -202,6 +202,8 @@ public static void initLogger(String log_folder, String format){
     
     System.setProperty(Constants.LOG_SIMPLE_FORMAT_JAVA_UTIL, format);
     
+    System.out.println("config log_folder: " + log_folder);
+    
     log = Logger.getLogger("agsmlGenerator");
     
    
