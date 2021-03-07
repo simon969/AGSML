@@ -445,7 +445,8 @@ public static void startServer(int port, String dic_file, String data_structure)
             AGS_Data f = new AGS_Data (dic_file);
             f.setResourceFolder(config.getProperty(Constants.RESOURCE_FOLDER));
             String full_dic_file = f.getFullResourcePath();
-            
+            System.out.println("Attempting to starting server on port: " + port + " with dictionary_file:" + full_dic_file + " and data_structure:" + data_structure);
+          
             if (full_dic_file.isEmpty()) {
                 log.info ("Cannot find dictionary file:" + dic_file + " resource folder:" + config.getProperty(Constants.RESOURCE_FOLDER));   
             }
