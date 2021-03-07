@@ -168,7 +168,7 @@ private void bindServerSocket () {
 } 
 private void loadDictionary() {
     try {
-    
+ 
         if (!DICTIONARY_SOURCE.isEmpty()) {
         mAGSDictionary = new AGS_Dictionary(DICTIONARY_SOURCE);
         }
@@ -176,7 +176,8 @@ private void loadDictionary() {
         mAGSDataStructure =  new AGS_DataStructure (mAGSDictionary); 
         mAGSDataStructure.setDataStructureSeries(DATA_STRUCTURE);
         }
-    
+            
+        
     } catch (Exception e) {
         log.severe (e.getMessage());
     }
