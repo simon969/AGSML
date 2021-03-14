@@ -1,0 +1,8 @@
+[Unit]
+Description=agsml service
+
+[Service]
+ExecStart=/home/opc/agsml/scripts/agsml_server_start.sh
+
+[Install]
+WantedBy=multi-user.target
