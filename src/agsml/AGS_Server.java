@@ -366,10 +366,12 @@ class AGS_ServerClient extends Thread {
    public AGS_Dictionary getDictionary(String fileName,  Constants.AGSVersion ags) {
        
         try {
+            
             if (mAGSDictionary == null) {
                 mAGSDictionary =  new AGS_Dictionary(fileName, ags.toString());
                 return mAGSDictionary;
             }
+                       
             
             AGS_Data ad1 = new AGS_Data(mAGSDictionary.source);
             String s1 =  ad1.FileNameNoPath();   
@@ -380,6 +382,8 @@ class AGS_ServerClient extends Thread {
                 
             if (!s1.equalsIgnoreCase(s2)) {
                 String s3 = ad2.getFullResourcePath();
+                log.info ("Using resource folder:"  + ad2.getResourceFolder());
+                log.info ("Setting new dictionary:" + s3 + " ags:"  + ags.toString());
                 mAGSDictionary =  new AGS_Dictionary(s3, ags.toString());
                
             }
@@ -391,6 +395,7 @@ class AGS_ServerClient extends Thread {
             
        } catch (Exception e) {
            return null;
+           
        }
    }
        
@@ -448,6 +453,7 @@ class AGS_ServerClient extends Thread {
                  throw new Exception ("AGS_Reader not identified:" + art.ags_version.toId());    
                 }
                 if (dic == null) {
+                   
                     throw new Exception("AGS_Dictionary not identified:" + mDictionarySource);
                 }
                 if (ds == null) {
